@@ -39,9 +39,13 @@ urlencoding = "2.1"
 rsa = "0.9"
 rand = "0.8"
 sha2 = "0.10"
-base64 = "0.21"
+base64 = "0.22"
 hex = "0.4"
 anyhow = "1.0"
+
+# Borsh + base58 for NEAR DelegateAction encoding
+borsh = { version = "1", features = ["derive"] }
+
 
 [dev-dependencies]
 tokio-test = "0.4"

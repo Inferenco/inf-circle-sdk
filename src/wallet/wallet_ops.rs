@@ -2,12 +2,12 @@
 
 use crate::{
     circle_ops::circler_ops::CircleOps,
-    helper::{encrypt_entity_secret, get_env_var, CircleResult},
+    helper::CircleResult,
     wallet::dto::{
-        AccountType, Blockchain, CreateWalletRequest, UpdateWalletRequest, WalletMetadata,
-        WalletResponse, WalletsResponse,
+        AccountType, Blockchain, CreateWalletRequest, SignDataRequest, SignDelegateRequest,
+        SignDelegateResponse, SignMessageRequest, SignTransactionRequest, SignTransactionResponse,
+        SignatureResponse, UpdateWalletRequest, WalletMetadata, WalletResponse, WalletsResponse,
     },
-    CircleError,
 };
 use uuid::Uuid;
 
@@ -20,12 +20,8 @@ impl CircleOps {
         &self,
         builder: CreateWalletRequestBuilder,
     ) -> CircleResult<WalletsResponse> {
-        let entity_secret = builder.entity_secret.clone();
-        let public_key = builder.public_key.clone();
-
         // Encrypt the entity secret (fresh encryption for each request)
-        let entity_secret_ciphertext = encrypt_entity_secret(&entity_secret, &public_key)
-            .map_err(|e| CircleError::Config(format!("Failed to encrypt entity secret: {}", e)))?;
+        let entity_secret_ciphertext = self.entity_secret()?;
 
         // Generate a new UUID for each request (or use custom one if provided)
         let idempotency_key = Uuid::new_v4().to_string();
@@ -56,6 +52,79 @@ impl CircleOps {
         let path = format!("/v1/w3s/wallets/{}", wallet_id);
         self.put(&path, &request).await
     }
+
+    /// sign a message
+    pub async fn sign_message(
+        &self,
+        builder: SignMessageRequestBuilder,
+    ) -> CircleResult<SignatureResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = SignMessageRequest {
+            entity_secret_ciphertext,
+            message: builder.message,
+            wallet_id: builder.wallet_id,
+            encoded_by_hex: builder.encoded_by_hex,
+            memo: builder.memo,
+        };
+
+        let path = format!("/v1/w3s/developer/sign/message");
+        self.post(&path, &request).await
+    }
+
+    /// sign a data
+    pub async fn sign_data(
+        &self,
+        builder: SignDataRequestBuilder,
+    ) -> CircleResult<SignatureResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = SignDataRequest {
+            entity_secret_ciphertext,
+            data: builder.data,
+            wallet_id: builder.wallet_id,
+            memo: builder.memo,
+        };
+
+        let path = format!("/v1/w3s/developer/sign/typedData");
+        self.post(&path, &request).await
+    }
+
+    /// sign a transaction
+    pub async fn sign_transaction(
+        &self,
+        builder: SignTransactionRequestBuilder,
+    ) -> CircleResult<SignTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = SignTransactionRequest {
+            entity_secret_ciphertext,
+            raw_transaction: builder.raw_transaction,
+            transaction: builder.transaction,
+            wallet_id: builder.wallet_id,
+            memo: builder.memo,
+        };
+
+        let path = format!("/v1/w3s/developer/sign/transaction");
+        self.post(&path, &request).await
+    }
+
+    /// sign a delegate action
+    pub async fn sign_delegate(
+        &self,
+        builder: SignDelegateRequestBuilder,
+    ) -> CircleResult<SignDelegateResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = SignDelegateRequest {
+            entity_secret_ciphertext,
+            unsigned_delegate_action: builder.unsigned_delegate_action,
+            wallet_id: builder.wallet_id,
+        };
+
+        let path = format!("/v1/w3s/developer/sign/delegateAction");
+        self.post(&path, &request).await
+    }
 }
 
 /// Builder for CreateWalletsRequest
@@ -69,8 +138,6 @@ pub struct CreateWalletRequestBuilder {
     pub(crate) name: Option<String>,
     pub(crate) ref_id: Option<String>,
     pub(crate) idempotency_key: Option<String>,
-    pub(crate) entity_secret: String,
-    pub(crate) public_key: String,
 }
 
 impl CreateWalletRequestBuilder {
@@ -82,9 +149,6 @@ impl CreateWalletRequestBuilder {
         let blockchain_strings: Vec<String> =
             blockchains.iter().map(|b| b.as_str().to_string()).collect();
 
-        let entity_secret = get_env_var("CIRCLE_ENTITY_SECRET")?;
-        let public_key = get_env_var("CIRCLE_PUBLIC_KEY")?;
-
         Ok(Self {
             wallet_set_id,
             blockchains: blockchain_strings,
@@ -94,8 +158,6 @@ impl CreateWalletRequestBuilder {
             name: None,
             ref_id: None,
             idempotency_key: None,
-            entity_secret,
-            public_key,
         })
     }
 
@@ -139,6 +201,158 @@ impl CreateWalletRequestBuilder {
     ///
     /// Returns the builder data for use by the create_wallet method
     pub fn build(self) -> CreateWalletRequestBuilder {
+        self
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SignMessageRequestBuilder {
+    pub(crate) wallet_id: String,
+    pub(crate) message: String,
+    pub(crate) encoded_by_hex: Option<bool>,
+    pub(crate) memo: Option<String>,
+}
+
+impl SignMessageRequestBuilder {
+    pub fn new(wallet_id: String, message: String) -> CircleResult<Self> {
+        Ok(Self {
+            wallet_id,
+            message,
+            encoded_by_hex: None,
+            memo: None,
+        })
+    }
+
+    pub fn wallet_id(mut self, wallet_id: String) -> Self {
+        self.wallet_id = wallet_id;
+        self
+    }
+
+    pub fn encoded_by_hex(mut self, encoded_by_hex: bool) -> Self {
+        self.encoded_by_hex = Some(encoded_by_hex);
+        self
+    }
+
+    pub fn memo(mut self, memo: String) -> Self {
+        self.memo = Some(memo);
+        self
+    }
+
+    pub fn build(self) -> SignMessageRequestBuilder {
+        self
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SignDataRequestBuilder {
+    pub(crate) wallet_id: String,
+    pub(crate) data: String,
+    pub(crate) memo: Option<String>,
+}
+
+impl SignDataRequestBuilder {
+    pub fn new(wallet_id: String, data: String) -> CircleResult<Self> {
+        Ok(Self {
+            wallet_id,
+            data,
+            memo: None,
+        })
+    }
+}
+
+impl SignDataRequestBuilder {
+    pub fn wallet_id(mut self, wallet_id: String) -> Self {
+        self.wallet_id = wallet_id;
+        self
+    }
+
+    pub fn data(mut self, data: String) -> Self {
+        self.data = data;
+        self
+    }
+
+    pub fn memo(mut self, memo: String) -> Self {
+        self.memo = Some(memo);
+        self
+    }
+
+    pub fn build(self) -> SignDataRequestBuilder {
+        self
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SignDelegateRequestBuilder {
+    pub(crate) wallet_id: String,
+    pub(crate) unsigned_delegate_action: String,
+}
+
+impl SignDelegateRequestBuilder {
+    pub fn new(wallet_id: String, unsigned_delegate_action: String) -> CircleResult<Self> {
+        Ok(Self {
+            wallet_id,
+            unsigned_delegate_action,
+        })
+    }
+
+    pub fn wallet_id(mut self, wallet_id: String) -> Self {
+        self.wallet_id = wallet_id;
+        self
+    }
+
+    pub fn unsigned_delegate_action(mut self, unsigned_delegate_action: String) -> Self {
+        self.unsigned_delegate_action = unsigned_delegate_action;
+        self
+    }
+
+    pub fn build(self) -> SignDelegateRequestBuilder {
+        self
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SignTransactionRequestBuilder {
+    pub(crate) wallet_id: String,
+    pub(crate) raw_transaction: Option<String>,
+    pub(crate) transaction: Option<String>,
+    pub(crate) memo: Option<String>,
+}
+
+impl SignTransactionRequestBuilder {
+    pub fn new(
+        wallet_id: String,
+        raw_transaction: Option<String>,
+        transaction: Option<String>,
+    ) -> CircleResult<Self> {
+        Ok(Self {
+            wallet_id,
+            raw_transaction,
+            transaction,
+            memo: None,
+        })
+    }
+
+    pub fn wallet_id(mut self, wallet_id: String) -> Self {
+        self.wallet_id = wallet_id;
+        self
+    }
+
+    pub fn raw_transaction(mut self, raw_transaction: String) -> Self {
+        self.raw_transaction = Some(raw_transaction);
+        self
+    }
+
+    pub fn transaction(mut self, transaction: String) -> Self {
+        self.transaction = Some(transaction);
+        self
+    }
+
+    pub fn memo(mut self, memo: String) -> Self {
+        self.memo = Some(memo);
+        self
+    }
+
+    pub fn build(self) -> SignTransactionRequestBuilder {
         self
     }
 }

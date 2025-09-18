@@ -120,10 +120,120 @@ pub struct Wallet {
     pub account_type: String,
 }
 
+/// Request structure for signing a message
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignMessageRequest {
+    /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
+    pub entity_secret_ciphertext: String,
+
+    /// The user friendly message that needs to be signed. If it is a hex string, encoded_by_hex needs to be TRUE. The hex string should start with "0x" and have even length.
+    pub message: String,
+
+    /// System-generated unique identifier of the resource.
+    pub wallet_id: String,
+
+    /// Indicator of whether the input message is encoded by hex. If TRUE, then the message should be a hex string. By default, it is False.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encoded_by_hex: Option<bool>,
+
+    /// The human readable explanation for this sign action. Useful for presenting with extra information.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+}
+
+/// Request structure for signing a data
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignDataRequest {
+    /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
+    pub entity_secret_ciphertext: String,
+
+    /// The data that needs to be signed.
+    pub data: String,
+
+    /// System-generated unique identifier of the resource.
+    pub wallet_id: String,
+
+    /// The human readable explanation for this sign action. Useful for presenting with extra information.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+}
+
+/// Response structure for signing a transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignTransactionRequest {
+    /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
+    pub entity_secret_ciphertext: String,
+
+    /// The raw transaction that needs to be signed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw_transaction: Option<String>,
+
+    /// The transaction that needs to be signed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<String>,
+
+    /// System-generated unique identifier of the resource.
+    pub wallet_id: String,
+
+    /// The human readable explanation for this sign action. Useful for presenting with extra information.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+}
+
+/// Response structure for signing a transaction
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignTransactionResponse {
+    /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
+    pub signature: String,
+
+    /// Signed transaction. Base64 encoded for NEAR and Solana chains. Hex encoded for EVM chains.
+    pub signed_transaction: String,
+
+    /// Blockchain-generated identifier of the transaction. Present if the wallet blockchain is not Solana.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_hash: Option<String>,
+}
+
+/// Request structure for signing a delegate action
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignDelegateRequest {
+    /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
+    pub entity_secret_ciphertext: String,
+
+    /// Unsigned delegate action string that needs to be signed. Must be base64 encoded.
+    pub unsigned_delegate_action: String,
+
+    /// System-generated unique identifier of the resource.
+    pub wallet_id: String,
+}
+
+/// Response structure for signing a delegate action
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignDelegateResponse {
+    /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
+    pub signature: String,
+
+    /// Signed delegate action is a base64 encoded string for NEAR.
+    pub signed_delegate_action: String,
+}
+
 /// Response structure for wallet operations
 #[derive(Debug, Deserialize)]
 pub struct WalletsResponse {
     pub wallets: Vec<Wallet>,
+}
+
+/// Response structure for sign message
+#[derive(Debug, Deserialize)]
+pub struct SignatureResponse {
+    /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
+    pub signature: String,
 }
 
 /// Supported blockchain networks

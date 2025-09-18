@@ -165,6 +165,7 @@ impl HttpClient {
     {
         let status = response.status();
         let response_text = response.text().await?;
+        println!("Response text: {}", response_text);
 
         if status.is_success() {
             let circle_response: CircleResponse<T> = serde_json::from_str(&response_text)?;
@@ -225,12 +226,6 @@ pub fn encrypt_entity_secret(
     // Convert hex string to bytes
     let entity_secret_bytes = hex::decode(entity_secret_hex)
         .map_err(|e| anyhow!("Failed to decode hex entity secret: {}", e))?;
-
-    // Parse the public key from PEM format
-    println!(
-        "Public key PEM header: {}",
-        public_key_pem.lines().next().unwrap_or("No header found")
-    );
 
     // Try PKCS#1 format first, then fall back to PKCS#8 format
     let public_key = match RsaPublicKey::from_pkcs1_pem(public_key_pem) {
