@@ -45,6 +45,11 @@ anyhow = "1.0"
 
 # Borsh + base58 for NEAR DelegateAction encoding
 borsh = { version = "1", features = ["derive"] }
+bs58 = "0.5"
+
+# NEAR official types (ensures correct serialization)
+near-primitives = "0.32.0"
+near-crypto = "0.32.0"
 
 
 [dev-dependencies]

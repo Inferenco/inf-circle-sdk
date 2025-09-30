@@ -2,7 +2,7 @@
 use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
 use inf_circle_sdk::wallet::{
     dto::{AccountType, Blockchain},
-    wallet_ops::CreateWalletRequestBuilder,
+    ops::create_wallet::CreateWalletRequestBuilder,
 };
 
 #[tokio::main]

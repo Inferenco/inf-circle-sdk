@@ -1,6 +1,7 @@
 //! Shared helper functions and types used across the SDK
 
 use chrono::{DateTime, Utc};
+use near_primitives::action::{base64, delegate::DelegateAction};
 use reqwest::{Client, Method, RequestBuilder, Response};
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
@@ -9,7 +10,7 @@ use url::Url;
 
 // Cryptography imports
 use anyhow::{anyhow, Result as AnyhowResult};
-use base64::{engine::general_purpose, Engine as _};
+use base64::{engine::general_purpose, Engine};
 use rsa::{pkcs1::DecodeRsaPublicKey, pkcs8::DecodePublicKey, Oaep, RsaPublicKey};
 use sha2::Sha256;
 
@@ -252,6 +253,39 @@ pub fn encrypt_entity_secret(
     let base64_encoded = general_purpose::STANDARD.encode(&encrypted_data);
 
     Ok(base64_encoded)
+}
+
+// ============================================================================
+// NEAR Protocol Helper Functions
+// ============================================================================
+
+/// Serialize a NEAR DelegateAction to base64 for Circle API
+///
+/// This uses NEAR's official types and Borsh serialization
+pub fn serialize_near_delegate_action_to_base64(
+    delegate_action: &DelegateAction,
+) -> std::io::Result<String> {
+    let borsh_bytes = borsh::to_vec(delegate_action)?;
+    Ok(base64(&borsh_bytes))
+}
+
+/// Parse a NEAR public key from various formats
+///
+/// Supports:
+/// - "ed25519:base58..." (NEAR standard)
+/// - "base58..." (Circle API format, assumes ED25519)
+pub fn parse_near_public_key(s: &str) -> Result<near_crypto::PublicKey, String> {
+    use std::str::FromStr;
+
+    // Try with prefix first
+    if let Ok(pk) = near_crypto::PublicKey::from_str(s) {
+        return Ok(pk);
+    }
+
+    // Try adding ed25519: prefix (Circle format)
+    let with_prefix = format!("ed25519:{}", s);
+    near_crypto::PublicKey::from_str(&with_prefix)
+        .map_err(|e| format!("Failed to parse NEAR public key: {}", e))
 }
 
 #[cfg(test)]

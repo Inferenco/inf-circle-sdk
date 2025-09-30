@@ -1,6 +1,6 @@
 //! Example of using CircleView to list wallets.
 use inf_circle_sdk::circle_view::circle_view::CircleView;
-use inf_circle_sdk::wallet::wallet_view::ListWalletsParamsBuilder;
+use inf_circle_sdk::wallet::views::list_wallets::ListWalletsParamsBuilder;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

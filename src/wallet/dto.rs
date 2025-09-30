@@ -434,6 +434,81 @@ pub struct QueryParams {
     pub pagination: PaginationParams,
 }
 
+/// Parameters for listing transactions
+#[derive(Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ListTransactionsParams {
+    /// Filter by blockchain
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockchain: Option<String>,
+
+    /// Filter by the custody type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custody_type: Option<String>,
+
+    /// Filter by the destination address
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub destination_address: Option<String>,
+
+    /// Return all resources with monitored and non-monitored tokens
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_bool_as_string"
+    )]
+    pub include_all: Option<bool>,
+
+    /// Filter by the operation of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation: Option<String>,
+
+    /// Filter by the state of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+
+    /// Filter on the transaction hash of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_hash: Option<String>,
+
+    /// Filter by the transaction type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_type: Option<String>,
+
+    /// Filter by the wallet IDs (comma separated list of ids)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wallet_ids: Option<String>,
+
+    /// Queries items created since the specified date-time (inclusive) in ISO 8601 format
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_datetime_as_string"
+    )]
+    pub from: Option<DateTime<Utc>>,
+
+    /// Queries items created before the specified date-time (inclusive) in ISO 8601 format
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_datetime_as_string"
+    )]
+    pub to: Option<DateTime<Utc>>,
+
+    /// Specifies the sort order of the collection by CreateDate
+    /// Valid values: ASC, DESC (default)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order: Option<String>,
+
+    /// Pagination parameters
+    #[serde(flatten)]
+    pub pagination: PaginationParams,
+}
+
+/// Parameters for get transaction
+#[derive(Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionParams {
+    /// Filter by the transaction type
+    pub tx_type: String,
+}
+
 /// Token balances data wrapper
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -573,4 +648,215 @@ pub struct Nft {
 
     /// Last update timestamp
     pub update_date: DateTime<Utc>,
+}
+
+/// Transactions data wrapper
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionsResponse {
+    pub transactions: Vec<Transaction>,
+}
+
+/// Transaction response structure
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionResponse {
+    pub transaction: Transaction,
+}
+
+/// Individual transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Transaction {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+
+    /// The contract ABI function signature or callData field
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_function_signature: Option<String>,
+
+    /// The contract ABI function signature parameters
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_parameters: Option<Vec<serde_json::Value>>,
+
+    /// Transfer amounts in decimal number format
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub amounts: Option<Vec<String>>,
+
+    /// Transaction amount in USD decimal format
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub amount_in_usd: Option<String>,
+
+    /// Identifier for the block that includes the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_hash: Option<String>,
+
+    /// Block height of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_height: Option<i64>,
+
+    /// The blockchain network
+    pub blockchain: String,
+
+    /// The blockchain address of the contract
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract_address: Option<String>,
+
+    /// Date and time the resource was created
+    pub create_date: DateTime<Utc>,
+
+    /// Describes who controls the digital assets in a wallet
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custody_type: Option<String>,
+
+    /// Blockchain generated unique identifier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub destination_address: Option<String>,
+
+    /// Description of the error
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_reason: Option<String>,
+
+    /// Additional detail associated with the corresponding transaction's error reason
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_details: Option<String>,
+
+    /// The estimated fee for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimated_fee: Option<EstimatedFee>,
+
+    /// Date the transaction was first confirmed in a block
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_confirm_date: Option<DateTime<Utc>>,
+
+    /// Gas fee, in native token, paid to the network for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_fee: Option<String>,
+
+    /// Gas fee, in USD, paid to the network for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_fee_in_usd: Option<String>,
+
+    /// List of NFTs associated with the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nfts: Option<Vec<String>>,
+
+    /// Operation type of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation: Option<String>,
+
+    /// Optional reference or description used to identify the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ref_id: Option<String>,
+
+    /// Blockchain generated unique identifier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_address: Option<String>,
+
+    /// Current state of the transaction
+    pub state: String,
+
+    /// System-generated unique identifier of the resource
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_id: Option<String>,
+
+    /// Transaction type
+    pub transaction_type: String,
+
+    /// Blockchain generated identifier of the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tx_hash: Option<String>,
+
+    /// Date and time the resource was last updated
+    pub update_date: DateTime<Utc>,
+
+    /// Unique system generated identifier for the user
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<String>,
+
+    /// System-generated unique identifier of the resource
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wallet_id: Option<String>,
+
+    /// Transaction screening evaluation
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction_screening_evaluation: Option<TransactionScreeningEvaluation>,
+}
+
+/// Estimated fee for the transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EstimatedFee {
+    /// The maximum units of gas to use for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_limit: Option<String>,
+
+    /// The maximum price of gas, in gwei, to use per each unit of gas
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_price: Option<String>,
+
+    /// The maximum price per unit of gas for EIP-1559 support
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_fee: Option<String>,
+
+    /// The "tip" to add to the base fee for EIP-1559 support
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority_fee: Option<String>,
+
+    /// The estimated base fee for EIP-1559 support
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base_fee: Option<String>,
+
+    /// The estimated network fee
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_fee: Option<String>,
+
+    /// The estimated network fee with lower buffer
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_fee_raw: Option<String>,
+
+    /// Defines the blockchain fee level
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fee_level: Option<String>,
+}
+
+/// Transaction screening evaluation
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionScreeningEvaluation {
+    /// Name of the matched rule found in screening
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rule_name: Option<String>,
+
+    /// Actions to take for the decision
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub actions: Option<Vec<String>>,
+
+    /// Date and time the resource was created
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screening_date: Option<DateTime<Utc>>,
+
+    /// Risk signals found
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasons: Option<Vec<RiskSignal>>,
+}
+
+/// Risk signal
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RiskSignal {
+    /// Source of the risk signal
+    pub source: String,
+
+    /// Value of the source
+    pub source_value: String,
+
+    /// Risk score of the signal
+    pub risk_score: String,
+
+    /// List of risk categories for the signal
+    pub risk_categories: Vec<String>,
+
+    /// Type of the signal
+    pub r#type: String,
 }
