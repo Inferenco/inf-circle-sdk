@@ -4,8 +4,12 @@ use inf_circle_sdk::{
     circle_view::circle_view::CircleView,
     helper::{parse_near_public_key, serialize_near_delegate_action_to_base64, PaginationParams},
     wallet::{
-        dto::{AccountType, Blockchain, QueryParams, UpdateWalletRequest, WalletMetadata},
+        dto::{
+            AccountType, Blockchain, FeeLevel, QueryParams, UpdateWalletRequest, Wallet,
+            WalletMetadata,
+        },
         ops::{
+            create_transfer_transaction::CreateTransferTransactionRequestBuilder,
             create_wallet::CreateWalletRequestBuilder, sign_data::SignDataRequestBuilder,
             sign_delegate::SignDelegateRequestBuilder, sign_message::SignMessageRequestBuilder,
             sign_transaction::SignTransactionRequestBuilder,
@@ -20,6 +24,124 @@ use inf_circle_sdk::{
 };
 use std::env;
 
+/// Helper function to get the destination wallet for transfer tests
+async fn get_or_create_destination_wallet(
+    ops: &CircleOps,
+    view: &CircleView,
+    wallet_set_id: &str,
+    blockchain: &Blockchain,
+) -> Result<Wallet, Box<dyn std::error::Error>> {
+    get_or_create_test_wallet(ops, view, wallet_set_id, blockchain, "Destination").await
+}
+
+/// Helper function to get or create a wallet for testing, with rate limit handling
+///
+/// Uses a deterministic ref_id based on blockchain to ensure the same wallet is reused.
+/// This allows you to manually fund the wallet once and use it for all tests.
+async fn get_or_create_test_wallet(
+    ops: &CircleOps,
+    view: &CircleView,
+    wallet_set_id: &str,
+    blockchain: &Blockchain,
+    name_prefix: &str,
+) -> Result<Wallet, Box<dyn std::error::Error>> {
+    // Use a deterministic ref_id based on blockchain only (ignore name_prefix for max reuse)
+    // Exception: destination wallets get their own ref_id
+    let deterministic_ref_id = if name_prefix == "Destination" {
+        format!(
+            "test-wallet-destination-{}",
+            blockchain.as_str().to_lowercase()
+        )
+    } else {
+        format!("test-wallet-{}", blockchain.as_str().to_lowercase())
+    };
+
+    // Try to find an existing wallet by ref_id first
+    let list_params = ListWalletsParamsBuilder::new()
+        .wallet_set_id(wallet_set_id.to_string())
+        .blockchain(blockchain.as_str().to_string())
+        .ref_id(deterministic_ref_id.clone())
+        .build();
+
+    if let Ok(wallets_response) = view.list_wallets(list_params).await {
+        if let Some(wallet) = wallets_response.wallets.into_iter().next() {
+            println!(
+                "♻️  Reusing existing test wallet: {} ({})",
+                wallet.id, wallet.address
+            );
+            println!("   Ref ID: {}", deterministic_ref_id);
+            return Ok(wallet);
+        }
+    }
+
+    // If no wallet exists, create one with rate limit retry
+    let mut retry_count = 0;
+    let max_retries = 3;
+
+    loop {
+        let create_request_builder = CreateWalletRequestBuilder::new(
+            wallet_set_id.to_string(),
+            vec![match blockchain {
+                Blockchain::EthSepolia => Blockchain::EthSepolia,
+                Blockchain::Eth => Blockchain::Eth,
+                Blockchain::AvaxFuji => Blockchain::AvaxFuji,
+                Blockchain::Avax => Blockchain::Avax,
+                Blockchain::MaticAmoy => Blockchain::MaticAmoy,
+                Blockchain::Matic => Blockchain::Matic,
+                Blockchain::SolDevnet => Blockchain::SolDevnet,
+                Blockchain::Sol => Blockchain::Sol,
+                Blockchain::ArbSepolia => Blockchain::ArbSepolia,
+                Blockchain::Arb => Blockchain::Arb,
+                Blockchain::NearTestnet => Blockchain::NearTestnet,
+                Blockchain::Near => Blockchain::Near,
+                Blockchain::EvmTestnet => Blockchain::EvmTestnet,
+                Blockchain::Evm => Blockchain::Evm,
+                Blockchain::UniSepolia => Blockchain::UniSepolia,
+                Blockchain::Uni => Blockchain::Uni,
+                Blockchain::BaseSepolia => Blockchain::BaseSepolia,
+                Blockchain::Base => Blockchain::Base,
+                Blockchain::OpSepolia => Blockchain::OpSepolia,
+                Blockchain::Op => Blockchain::Op,
+                Blockchain::AptosTestnet => Blockchain::AptosTestnet,
+                Blockchain::Aptos => Blockchain::Aptos,
+            }],
+        )
+        .unwrap()
+        .account_type(AccountType::Eoa)
+        .metadata(vec![WalletMetadata {
+            name: Some(format!("{} Wallet", name_prefix)),
+            ref_id: Some(deterministic_ref_id.clone()), // Use deterministic ref_id
+        }])
+        .build();
+
+        match ops.create_wallet(create_request_builder).await {
+            Ok(create_response) => {
+                if let Some(wallet) = create_response.wallets.into_iter().next() {
+                    println!(
+                        "🆕 Created new test wallet: {} ({})",
+                        wallet.id, wallet.address
+                    );
+                    println!("   Ref ID: {}", deterministic_ref_id);
+                    println!("   📝 Fund this wallet manually at: https://sepoliafaucet.com/");
+                    println!("   💡 This wallet will be reused for all future tests!");
+                    return Ok(wallet);
+                }
+                return Err("No wallet created".into());
+            }
+            Err(e) if e.to_string().contains("429") && retry_count < max_retries => {
+                retry_count += 1;
+                let delay = 2u64.pow(retry_count); // Exponential backoff: 2s, 4s, 8s
+                println!(
+                    "Rate limited, waiting {}s before retry {}/{}...",
+                    delay, retry_count, max_retries
+                );
+                tokio::time::sleep(tokio::time::Duration::from_secs(delay)).await;
+            }
+            Err(e) => return Err(e.into()),
+        }
+    }
+}
+
 // NEAR Protocol types (official)
 use near_primitives::{
     action::{
@@ -28,6 +150,61 @@ use near_primitives::{
     },
     types::AccountId as NearAccountId,
 };
+
+/// Helper test to display test wallet addresses for manual funding
+/// Run this first: `cargo test test_setup_wallets_for_funding -- --nocapture`
+#[tokio::test]
+async fn test_setup_wallets_for_funding() {
+    dotenv::dotenv().ok();
+
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
+
+    println!("\n═══════════════════════════════════════════════════════════════");
+    println!("   🔑 TEST WALLET SETUP - Fund these wallets for testing");
+    println!("═══════════════════════════════════════════════════════════════\n");
+
+    // Get or create source ETH-SEPOLIA wallet
+    if let Ok(source_wallet) = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "ETH Sepolia Test",
+    )
+    .await
+    {
+        println!("📍 SOURCE Wallet (ETH-SEPOLIA):");
+        println!("   Address: {}", source_wallet.address);
+        println!("   Wallet ID: {}", source_wallet.id);
+        println!("   Ref ID: test-wallet-eth-sepolia");
+        println!("\n   💰 Fund with native ETH:");
+        println!("      🔗 https://sepoliafaucet.com/");
+        println!("      🔗 https://www.alchemy.com/faucets/ethereum-sepolia");
+        println!("\n   🪙 Fund with LINK tokens (for ERC20 tests):");
+        println!("      🔗 https://faucets.chain.link/sepolia");
+        println!("      Request both ETH and LINK tokens");
+        println!();
+    }
+
+    // Get or create destination ETH-SEPOLIA wallet
+    if let Ok(dest_wallet) =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia).await
+    {
+        println!("📍 DESTINATION Wallet (ETH-SEPOLIA):");
+        println!("   Address: {}", dest_wallet.address);
+        println!("   Wallet ID: {}", dest_wallet.id);
+        println!("   Ref ID: test-wallet-destination-eth-sepolia");
+        println!("   (No funding required - this receives transfers)");
+        println!();
+    }
+
+    println!("═══════════════════════════════════════════════════════════════");
+    println!("💡 After funding SOURCE wallet, run the transfer tests:");
+    println!("   cargo test test_create_transfer_transaction -- --nocapture");
+    println!("═══════════════════════════════════════════════════════════════\n");
+}
 
 #[tokio::test]
 async fn test_wallet_lifecycle() {
@@ -306,28 +483,23 @@ async fn test_sign_message() {
     // Load environment variables from .env file
     dotenv::dotenv().ok();
 
-    // Initialize CircleOps
+    // Initialize CircleOps and CircleView
     let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
-    // Create a test wallet first
-    let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
-            .unwrap()
-            .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
-                name: Some("Sign Message Test Wallet".to_string()),
-                ref_id: Some("sign-message-test".to_string()),
-            }])
-            .build();
-
-    let create_response = ops
-        .create_wallet(create_request_builder)
-        .await
-        .expect("Failed to create wallet");
-    let test_wallet = create_response.wallets.first().expect("No wallet created");
+    // Get or create a test wallet (reuses existing to avoid rate limits)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Sign Message Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
 
     // Test signing a simple message
     let message = "Hello, Circle SDK!";
@@ -658,31 +830,23 @@ async fn test_sign_delegate_non_near_should_fail() {
     // Load environment variables from .env file
     dotenv::dotenv().ok();
 
-    // Initialize CircleOps
+    // Initialize CircleOps and CircleView
     let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
-    // Create a non-NEAR test wallet (Ethereum)
-    let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
-            .unwrap()
-            .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
-                name: Some("Sign Delegate ETH Test Wallet".to_string()),
-                ref_id: Some("sign-delegate-eth-test".to_string()),
-            }])
-            .build();
-
-    let create_response = ops
-        .create_wallet(create_request_builder)
-        .await
-        .expect("Failed to create ETH wallet");
-    let test_wallet = create_response
-        .wallets
-        .first()
-        .expect("No ETH wallet created");
+    // Get or create a non-NEAR test wallet (Ethereum)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Sign Delegate ETH Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
 
     // Verify we have a non-NEAR wallet
     assert_ne!(
@@ -842,205 +1006,106 @@ async fn test_get_transaction() {
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
-    // 1. Create a test wallet first
-    let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
-            .unwrap()
-            .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
-                name: Some("Get Transaction Test Wallet".to_string()),
-                ref_id: Some("get-transaction-test".to_string()),
-            }])
-            .build();
+    // 1. Get or create source wallet
+    let source_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Get Transaction Test",
+    )
+    .await
+    .expect("Failed to get or create source wallet");
 
-    let create_response = ops
-        .create_wallet(create_request_builder)
+    println!("Using source wallet: {}", source_wallet.id);
+
+    // 2. Get destination wallet
+    let destination_wallet =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia)
+            .await
+            .expect("Failed to get or create destination wallet");
+
+    // 3. Create a transfer transaction
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new(source_wallet.id.clone())
+        .destination_address(destination_wallet.address.clone())
+        .amounts(vec!["0.001".to_string()])
+        .blockchain(Blockchain::EthSepolia)
+        .idempotency_key(uuid::Uuid::new_v4().to_string())
+        .fee_level(FeeLevel::Medium)
+        .ref_id("test-get-transaction".to_string())
+        .build();
+
+    let transfer_response = ops
+        .create_transfer_transaction(transfer_builder)
         .await
-        .expect("Failed to create wallet");
-    let test_wallet = create_response.wallets.first().expect("No wallet created");
+        .expect("Failed to create transfer transaction");
 
-    println!("Created test wallet: {}", test_wallet.id);
+    let tx_id = transfer_response.id;
+    println!("✅ Created transfer transaction: {}", tx_id);
 
-    // 2. Create a transaction by signing a message (this creates a transaction record)
-    let test_message = "Test message for transaction creation";
-    let sign_request_builder =
-        SignMessageRequestBuilder::new(test_wallet.id.clone(), test_message.to_string())
-            .unwrap()
-            .memo("Test transaction creation".to_string())
-            .build();
+    // 4. Wait a moment for the transaction to be processed
+    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
 
-    let sign_response = ops.sign_message(sign_request_builder).await;
+    // 5. Get the specific transaction
+    let transaction_response = view
+        .get_transaction(&tx_id)
+        .await
+        .expect("Failed to get transaction");
 
-    match sign_response {
-        Ok(response) => {
-            println!(
-                "✅ Message signed successfully, signature: {}",
-                response.signature
-            );
+    println!("✅ Successfully retrieved transaction!");
 
-            // 3. Wait a moment for the transaction to be processed
-            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    // 6. Verify the response structure
+    assert_eq!(
+        transaction_response.transaction.id, tx_id,
+        "Retrieved transaction ID should match"
+    );
+    assert_eq!(
+        transaction_response.transaction.blockchain, "ETH-SEPOLIA",
+        "Blockchain should be ETH-SEPOLIA"
+    );
 
-            // 4. List transactions to find our newly created transaction
-            let list_params = ListTransactionsParamsBuilder::new()
-                .wallet_ids(test_wallet.id.clone())
-                .pagination(PaginationParams {
-                    page_size: Some(10),
-                    page_after: None,
-                    page_before: None,
-                })
-                .order("DESC".to_string())
-                .build();
+    // Verify it's related to our source wallet
+    if let Some(wallet_id) = &transaction_response.transaction.wallet_id {
+        assert_eq!(
+            wallet_id, &source_wallet.id,
+            "Transaction should belong to our source wallet"
+        );
+    }
 
-            let list_result = view.list_transactions(list_params).await;
+    // Verify destination address
+    if let Some(dest_address) = &transaction_response.transaction.destination_address {
+        assert_eq!(
+            dest_address.to_lowercase(),
+            destination_wallet.address.to_lowercase(),
+            "Destination address should match"
+        );
+    }
 
-            match list_result {
-                Ok(transactions_response) => {
-                    if let Some(first_tx) = transactions_response.transactions.first() {
-                        let tx_id = &first_tx.id;
-                        println!("Found transaction ID for testing: {}", tx_id);
+    println!("Transaction details:");
+    println!("  ID: {}", transaction_response.transaction.id);
+    println!(
+        "  Blockchain: {}",
+        transaction_response.transaction.blockchain
+    );
+    println!("  State: {}", transaction_response.transaction.state);
+    println!(
+        "  Type: {}",
+        transaction_response.transaction.transaction_type
+    );
+    println!(
+        "  Source Wallet ID: {:?}",
+        transaction_response.transaction.wallet_id
+    );
+    println!(
+        "  Destination: {:?}",
+        transaction_response.transaction.destination_address
+    );
 
-                        // 5. Now test getting the specific transaction
-                        let get_result = view.get_transaction(tx_id).await;
-
-                        match get_result {
-                            Ok(transaction_response) => {
-                                println!("✅ Successfully retrieved transaction!");
-
-                                // Verify the response structure
-                                assert!(
-                                    !transaction_response.transaction.id.is_empty(),
-                                    "Transaction ID should not be empty"
-                                );
-                                assert_eq!(
-                                    transaction_response.transaction.id, *tx_id,
-                                    "Retrieved transaction ID should match requested ID"
-                                );
-                                assert!(
-                                    !transaction_response.transaction.blockchain.is_empty(),
-                                    "Blockchain should not be empty"
-                                );
-                                assert!(
-                                    !transaction_response.transaction.state.is_empty(),
-                                    "State should not be empty"
-                                );
-                                assert!(
-                                    !transaction_response.transaction.transaction_type.is_empty(),
-                                    "Transaction type should not be empty"
-                                );
-
-                                // Verify it's related to our test wallet
-                                if let Some(wallet_id) = &transaction_response.transaction.wallet_id
-                                {
-                                    assert_eq!(
-                                        wallet_id, &test_wallet.id,
-                                        "Transaction should belong to our test wallet"
-                                    );
-                                }
-
-                                println!("Transaction details:");
-                                println!("  ID: {}", transaction_response.transaction.id);
-                                println!(
-                                    "  Blockchain: {}",
-                                    transaction_response.transaction.blockchain
-                                );
-                                println!("  State: {}", transaction_response.transaction.state);
-                                println!(
-                                    "  Type: {}",
-                                    transaction_response.transaction.transaction_type
-                                );
-                                println!(
-                                    "  Wallet ID: {:?}",
-                                    transaction_response.transaction.wallet_id
-                                );
-
-                                if let Some(tx_hash) = &transaction_response.transaction.tx_hash {
-                                    println!("  TX Hash: {}", tx_hash);
-                                }
-                                if let Some(amount_in_usd) =
-                                    &transaction_response.transaction.amount_in_usd
-                                {
-                                    println!("  Amount in USD: {}", amount_in_usd);
-                                }
-                            }
-                            Err(e) => {
-                                panic!("Failed to get specific transaction: {}", e);
-                            }
-                        }
-                    } else {
-                        panic!("No transactions found for our test wallet");
-                    }
-                }
-                Err(e) => {
-                    panic!("Failed to list transactions: {}", e);
-                }
-            }
-        }
-        Err(e) => {
-            // Handle the case where message signing might fail
-            println!("⚠️  Message signing failed: {}", e);
-            println!("This might be expected in some test environments");
-
-            // Try to find any existing transaction for this wallet
-            let list_params = ListTransactionsParamsBuilder::new()
-                .wallet_ids(test_wallet.id.clone())
-                .pagination(PaginationParams {
-                    page_size: Some(10),
-                    page_after: None,
-                    page_before: None,
-                })
-                .order("DESC".to_string())
-                .build();
-
-            let list_result = view.list_transactions(list_params).await;
-
-            match list_result {
-                Ok(transactions_response) => {
-                    if let Some(first_tx) = transactions_response.transactions.first() {
-                        let tx_id = &first_tx.id;
-                        println!("Found existing transaction ID for testing: {}", tx_id);
-
-                        // Test getting the specific transaction
-                        let get_result = view.get_transaction(tx_id).await;
-
-                        match get_result {
-                            Ok(transaction_response) => {
-                                println!("✅ Successfully retrieved existing transaction!");
-
-                                // Basic validation
-                                assert!(
-                                    !transaction_response.transaction.id.is_empty(),
-                                    "Transaction ID should not be empty"
-                                );
-                                assert_eq!(
-                                    transaction_response.transaction.id, *tx_id,
-                                    "Retrieved transaction ID should match requested ID"
-                                );
-
-                                println!("Transaction details:");
-                                println!("  ID: {}", transaction_response.transaction.id);
-                                println!(
-                                    "  Blockchain: {}",
-                                    transaction_response.transaction.blockchain
-                                );
-                                println!("  State: {}", transaction_response.transaction.state);
-                            }
-                            Err(e) => {
-                                panic!("Failed to get existing transaction: {}", e);
-                            }
-                        }
-                    } else {
-                        panic!("No transactions found for test wallet and message signing failed");
-                    }
-                }
-                Err(e) => {
-                    panic!(
-                        "Failed to list transactions and message signing failed: {}",
-                        e
-                    );
-                }
-            }
-        }
+    if let Some(tx_hash) = &transaction_response.transaction.tx_hash {
+        println!("  TX Hash: {}", tx_hash);
+    }
+    if let Some(amounts) = &transaction_response.transaction.amounts {
+        println!("  Amounts: {:?}", amounts);
     }
 }
 
@@ -1064,5 +1129,282 @@ async fn test_get_transaction_with_invalid_id() {
 
     if let Err(e) = result {
         println!("✅ Correctly failed to get invalid transaction: {}", e);
+    }
+}
+
+#[tokio::test]
+async fn test_create_transfer_transaction_with_fee_level() {
+    // Load environment variables from .env file
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get required environment variables
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
+
+    // Get or create a test wallet (reuses existing to avoid rate limits)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Transfer Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
+
+    println!("Using source wallet: {}", test_wallet.id);
+    println!("Source address: {}", test_wallet.address);
+
+    // Get destination wallet
+    let destination_wallet =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia)
+            .await
+            .expect("Failed to get or create destination wallet");
+
+    println!("Destination address: {}", destination_wallet.address);
+
+    // 2. Create a transfer transaction using FeeLevel
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+        .destination_address(destination_wallet.address.clone())
+        .amounts(vec!["0.001".to_string()]) // Transfer 0.001 ETH
+        .blockchain(Blockchain::EthSepolia) // Required for native token transfers
+        .idempotency_key(uuid::Uuid::new_v4().to_string())
+        .fee_level(FeeLevel::Medium)
+        .ref_id("test-transfer-fee-level".to_string())
+        .build();
+
+    let response = ops
+        .create_transfer_transaction(transfer_builder)
+        .await
+        .expect("Failed to create transfer transaction");
+
+    println!("✅ Successfully created transfer transaction!");
+    println!("Transaction ID: {}", response.id);
+    println!("Transaction state: {}", response.state);
+
+    // Verify response structure
+    assert!(
+        !response.id.is_empty(),
+        "Transaction ID should not be empty"
+    );
+    assert!(
+        !response.state.is_empty(),
+        "Transaction state should not be empty"
+    );
+
+    // State should be one of the valid states
+    let valid_states = vec![
+        "CANCELLED",
+        "CONFIRMED",
+        "COMPLETED",
+        "DENIED",
+        "FAILED",
+        "INITIATED",
+        "CLEARED",
+        "QUEUED",
+        "SENT",
+    ];
+    assert!(
+        valid_states.contains(&response.state.as_str()),
+        "State should be a valid transaction state"
+    );
+}
+
+#[tokio::test]
+async fn test_create_transfer_transaction_with_gas_settings() {
+    // Load environment variables from .env file
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get required environment variables
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
+
+    // Get or create a test wallet (reuses existing to avoid rate limits)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Transfer Gas Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
+
+    println!("Using source wallet: {}", test_wallet.id);
+
+    // Get destination wallet
+    let destination_wallet =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia)
+            .await
+            .expect("Failed to get or create destination wallet");
+
+    println!("Destination address: {}", destination_wallet.address);
+
+    // 2. Create a transfer transaction with custom gas settings (EIP-1559)
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+        .destination_address(destination_wallet.address.clone())
+        .amounts(vec!["0.001".to_string()])
+        .blockchain(Blockchain::EthSepolia) // Required for native token transfers
+        .idempotency_key(uuid::Uuid::new_v4().to_string())
+        .gas_limit("21000".to_string())
+        .max_fee("50".to_string()) // 50 gwei max fee
+        .priority_fee("2".to_string()) // 2 gwei priority fee
+        .ref_id("test-transfer-gas-settings".to_string())
+        .build();
+
+    let response = ops
+        .create_transfer_transaction(transfer_builder)
+        .await
+        .expect("Failed to create transfer transaction with gas settings");
+
+    println!("✅ Successfully created transfer transaction with gas settings!");
+    println!("Transaction ID: {}", response.id);
+    println!("Transaction state: {}", response.state);
+
+    assert!(
+        !response.id.is_empty(),
+        "Transaction ID should not be empty"
+    );
+}
+
+#[tokio::test]
+async fn test_create_token_transfer_transaction() {
+    // Load environment variables from .env file
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get required environment variables
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
+
+    // Get or create a test wallet (reuses existing to avoid rate limits)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Token Transfer Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
+
+    println!("Using source wallet: {}", test_wallet.id);
+    println!("Source address: {}", test_wallet.address);
+
+    // Get destination wallet
+    let destination_wallet =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia)
+            .await
+            .expect("Failed to get or create destination wallet");
+
+    println!("Destination address: {}", destination_wallet.address);
+
+    // Use Chainlink LINK token on Sepolia (can be obtained from https://faucets.chain.link/sepolia)
+    let link_token_address = "0x779877A7B0D9E8603169DdbD7836e478b4624789"; // LINK on Sepolia
+
+    println!("\n💡 Get LINK tokens from Chainlink faucet:");
+    println!("   🔗 https://faucets.chain.link/sepolia");
+    println!("   📝 Enter wallet address: {}", test_wallet.address);
+    println!("   Request both ETH and LINK tokens\n");
+
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+        .destination_address(destination_wallet.address.clone())
+        .amounts(vec!["0.1".to_string()]) // Transfer 0.1 LINK
+        .token_address(link_token_address.to_string())
+        .blockchain(Blockchain::EthSepolia)
+        .idempotency_key(uuid::Uuid::new_v4().to_string())
+        .fee_level(FeeLevel::Medium)
+        .ref_id("test-link-transfer".to_string())
+        .build();
+
+    let response = ops
+        .create_transfer_transaction(transfer_builder)
+        .await
+        .expect("Failed to create LINK token transfer transaction");
+
+    println!("✅ Successfully created LINK token transfer transaction!");
+    println!("Transaction ID: {}", response.id);
+    println!("Transaction state: {}", response.state);
+
+    assert!(
+        !response.id.is_empty(),
+        "Transaction ID should not be empty"
+    );
+}
+
+#[tokio::test]
+async fn test_create_transfer_transaction_all_fee_levels() {
+    // Load environment variables from .env file
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get required environment variables
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
+
+    // Get or create a test wallet (reuses existing to avoid rate limits)
+    let test_wallet = get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::EthSepolia,
+        "Fee Level Test",
+    )
+    .await
+    .expect("Failed to get or create test wallet");
+
+    println!("Testing all fee levels with wallet: {}", test_wallet.id);
+
+    // Get destination wallet
+    let destination_wallet =
+        get_or_create_destination_wallet(&ops, &view, &wallet_set_id, &Blockchain::EthSepolia)
+            .await
+            .expect("Failed to get or create destination wallet");
+
+    println!("Destination address: {}", destination_wallet.address);
+
+    let fee_levels = vec![
+        (FeeLevel::Low, "LOW"),
+        (FeeLevel::Medium, "MEDIUM"),
+        (FeeLevel::High, "HIGH"),
+    ];
+
+    for (fee_level, level_name) in fee_levels {
+        println!("\nTesting fee level: {}", level_name);
+
+        let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+            .destination_address(destination_wallet.address.clone())
+            .amounts(vec!["0.001".to_string()])
+            .blockchain(Blockchain::EthSepolia) // Required for native token transfers
+            .idempotency_key(uuid::Uuid::new_v4().to_string())
+            .fee_level(fee_level)
+            .ref_id(format!("test-transfer-{}", level_name.to_lowercase()))
+            .build();
+
+        let response = ops
+            .create_transfer_transaction(transfer_builder)
+            .await
+            .unwrap_or_else(|e| {
+                panic!(
+                    "Failed to create {} fee level transaction: {}",
+                    level_name, e
+                )
+            });
+
+        println!(
+            "  ✅ {} fee level transaction created: {}",
+            level_name, response.id
+        );
+        assert!(!response.id.is_empty());
     }
 }
