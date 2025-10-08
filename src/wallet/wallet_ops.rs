@@ -5,11 +5,13 @@ use crate::{
     helper::CircleResult,
     wallet::{
         dto::{
+            CreateTransferTransactionRequest, CreateTransferTransactionResponse,
             CreateWalletRequest, SignDataRequest, SignDelegateRequest, SignDelegateResponse,
             SignMessageRequest, SignTransactionRequest, SignTransactionResponse, SignatureResponse,
             UpdateWalletRequest, WalletResponse, WalletsResponse,
         },
         ops::{
+            create_transfer_transaction::CreateTransferTransactionRequestBuilder,
             create_wallet::CreateWalletRequestBuilder, sign_data::SignDataRequestBuilder,
             sign_delegate::SignDelegateRequestBuilder, sign_message::SignMessageRequestBuilder,
             sign_transaction::SignTransactionRequestBuilder,
@@ -130,6 +132,35 @@ impl CircleOps {
         };
 
         let path = format!("/v1/w3s/developer/sign/delegateAction");
+        self.post(&path, &request).await
+    }
+
+    /// create a transfer transaction
+    pub async fn create_transfer_transaction(
+        &self,
+        builder: CreateTransferTransactionRequestBuilder,
+    ) -> CircleResult<CreateTransferTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = CreateTransferTransactionRequest {
+            entity_secret_ciphertext,
+            wallet_id: builder.wallet_id,
+            destination_address: builder.destination_address,
+            amounts: builder.amounts,
+            nft_token_ids: builder.nft_token_ids,
+            token_id: builder.token_id,
+            token_address: builder.token_address,
+            idempotency_key: builder.idempotency_key,
+            ref_id: builder.ref_id,
+            blockchain: builder.blockchain,
+            gas_limit: builder.gas_limit,
+            gas_price: builder.gas_price,
+            max_fee: builder.max_fee,
+            priority_fee: builder.priority_fee,
+            fee_level: builder.fee_level,
+        };
+
+        let path = format!("/v1/w3s/developer/transactions/transfer");
         self.post(&path, &request).await
     }
 }

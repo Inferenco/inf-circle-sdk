@@ -1,6 +1,7 @@
 //! Shared helper functions and types used across the SDK
 
 use chrono::{DateTime, Utc};
+use near_crypto::PublicKey;
 use near_primitives::action::{base64, delegate::DelegateAction};
 use reqwest::{Client, Method, RequestBuilder, Response};
 use serde::{Deserialize, Serialize, Serializer};
@@ -166,7 +167,6 @@ impl HttpClient {
     {
         let status = response.status();
         let response_text = response.text().await?;
-        println!("Response text: {}", response_text);
 
         if status.is_success() {
             let circle_response: CircleResponse<T> = serde_json::from_str(&response_text)?;
@@ -284,8 +284,7 @@ pub fn parse_near_public_key(s: &str) -> Result<near_crypto::PublicKey, String> 
 
     // Try adding ed25519: prefix (Circle format)
     let with_prefix = format!("ed25519:{}", s);
-    near_crypto::PublicKey::from_str(&with_prefix)
-        .map_err(|e| format!("Failed to parse NEAR public key: {}", e))
+    PublicKey::from_str(&with_prefix).map_err(|e| format!("Failed to parse NEAR public key: {}", e))
 }
 
 #[cfg(test)]

@@ -2,6 +2,24 @@ use crate::helper::{serialize_bool_as_string, serialize_datetime_as_string, Pagi
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum FeeLevel {
+    Low,
+    Medium,
+    High,
+}
+
+impl FeeLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            FeeLevel::Low => "LOW",
+            FeeLevel::Medium => "MEDIUM",
+            FeeLevel::High => "HIGH",
+        }
+    }
+}
+
 /// Request structure for creating wallets
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -236,6 +254,7 @@ pub struct SignatureResponse {
     pub signature: String,
 }
 
+#[derive(Debug, Clone)]
 /// Supported blockchain networks
 pub enum Blockchain {
     Eth,
@@ -288,6 +307,15 @@ impl Blockchain {
             Blockchain::Aptos => "APTOS",
             Blockchain::AptosTestnet => "APTOS-TESTNET",
         }
+    }
+}
+
+impl Serialize for Blockchain {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }
 
@@ -859,4 +887,82 @@ pub struct RiskSignal {
 
     /// Type of the signal
     pub r#type: String,
+}
+
+/// Request structure for creating a transfer transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateTransferTransactionRequest {
+    /// Unique system generated identifier of the wallet. Required when sourceAddress and blockchain are not provided.
+    pub wallet_id: String,
+
+    /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key.
+    pub entity_secret_ciphertext: String,
+
+    /// Blockchain generated unique identifier, associated with wallet (account), smart contract or other blockchain objects.
+    pub destination_address: String,
+
+    /// Universally unique identifier (UUID v4) idempotency key.
+    pub idempotency_key: String,
+
+    /// Transfer amounts in decimal number format. For ERC721 token transfer, the amounts field is required to be ["1"].
+    pub amounts: Vec<String>,
+
+    /// A dynamic blockchain fee level setting (LOW, MEDIUM, or HIGH) that will be used to pay gas for the transaction.
+    /// Cannot be used with gasPrice, priorityFee, or maxFee.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fee_level: Option<FeeLevel>,
+
+    /// The maximum units of gas to use for the transaction. Required if feeLevel is not provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_limit: Option<String>,
+
+    /// For blockchains without EIP-1559 support, the maximum price of gas, in gwei, to use per each unit of gas.
+    /// Requires gasLimit. Cannot be used with feeLevel, priorityFee, or maxFee.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_price: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the maximum price per unit of gas, in gwei.
+    /// Requires priorityFee and gasLimit. Cannot be used with feeLevel or gasPrice.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_fee: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the "tip", in gwei, to add to the base fee as an incentive for validators.
+    /// Requires maxFee and gasLimit. Cannot be used with feeLevel or gasPrice.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority_fee: Option<String>,
+
+    /// List of NFT token IDs corresponding with the NFTs to transfer.
+    /// Batch transfers are supported only for ERC-1155 tokens. The length of NFT token IDs must match the length of amounts.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nft_token_ids: Option<Vec<String>>,
+
+    /// Optional reference or description used to identify the transaction.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ref_id: Option<String>,
+
+    /// System generated identifier of the token. Excluded with tokenAddress and tokenBlockchain.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_id: Option<String>,
+
+    /// Blockchain address of the transferred token. Empty for native tokens. Excluded with tokenId.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_address: Option<String>,
+
+    /// Blockchain of the transferred token. Required if tokenId is not provided.
+    /// The blockchain and tokenId fields are mutually exclusive.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockchain: Option<Blockchain>,
+}
+
+/// Response structure for creating a transfer transaction
+/// Note: The outer `data` wrapper is already unwrapped by HttpClient
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateTransferTransactionResponse {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+
+    /// Current state of the transaction
+    pub state: String,
 }
