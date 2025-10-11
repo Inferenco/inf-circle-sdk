@@ -1,4 +1,3 @@
-'''
 # Circle Rust SDK
 
 [![Crates.io](https://img.shields.io/crates/v/inf-circle-sdk.svg)](https://crates.io/crates/inf-circle-sdk)
@@ -225,5 +224,4 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-'''
 
