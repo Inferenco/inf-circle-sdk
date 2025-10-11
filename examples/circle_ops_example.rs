@@ -1,9 +1,7 @@
 //! Example of using CircleOps to create a wallet.
 use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
-use inf_circle_sdk::wallet::{
-    dto::{AccountType, Blockchain},
-    ops::create_wallet::CreateWalletRequestBuilder,
-};
+use inf_circle_sdk::types::Blockchain;
+use inf_circle_sdk::wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

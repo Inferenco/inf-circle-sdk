@@ -167,6 +167,7 @@ impl HttpClient {
     {
         let status = response.status();
         let response_text = response.text().await?;
+        println!("Response text: {}", response_text);
 
         if status.is_success() {
             let circle_response: CircleResponse<T> = serde_json::from_str(&response_text)?;

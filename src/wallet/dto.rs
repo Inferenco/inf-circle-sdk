@@ -1,4 +1,7 @@
-use crate::helper::{serialize_bool_as_string, serialize_datetime_as_string, PaginationParams};
+use crate::{
+    helper::{serialize_bool_as_string, serialize_datetime_as_string, PaginationParams},
+    types::Blockchain,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +34,7 @@ pub struct CreateWalletRequest {
     pub entity_secret_ciphertext: String,
 
     /// Target blockchains for wallet creation
-    pub blockchains: Vec<String>,
+    pub blockchains: Vec<Blockchain>,
 
     /// UUID v4 for idempotency
     pub idempotency_key: String,
@@ -101,7 +104,7 @@ pub struct Wallet {
     pub address: String,
 
     /// Blockchain network
-    pub blockchain: String,
+    pub blockchain: Blockchain,
 
     /// Creation timestamp
     pub create_date: DateTime<Utc>,
@@ -252,71 +255,6 @@ pub struct WalletsResponse {
 pub struct SignatureResponse {
     /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
     pub signature: String,
-}
-
-#[derive(Debug, Clone)]
-/// Supported blockchain networks
-pub enum Blockchain {
-    Eth,
-    EthSepolia,
-    Avax,
-    AvaxFuji,
-    Matic,
-    MaticAmoy,
-    Sol,
-    SolDevnet,
-    Arb,
-    ArbSepolia,
-    Near,
-    NearTestnet,
-    Evm,
-    EvmTestnet,
-    Uni,
-    UniSepolia,
-    Base,
-    BaseSepolia,
-    Op,
-    OpSepolia,
-    Aptos,
-    AptosTestnet,
-}
-
-impl Blockchain {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Blockchain::Eth => "ETH",
-            Blockchain::EthSepolia => "ETH-SEPOLIA",
-            Blockchain::Avax => "AVAX",
-            Blockchain::AvaxFuji => "AVAX-FUJI",
-            Blockchain::Matic => "MATIC",
-            Blockchain::MaticAmoy => "MATIC-AMOY",
-            Blockchain::Sol => "SOL",
-            Blockchain::SolDevnet => "SOL-DEVNET",
-            Blockchain::Arb => "ARB",
-            Blockchain::ArbSepolia => "ARB-SEPOLIA",
-            Blockchain::Near => "NEAR",
-            Blockchain::NearTestnet => "NEAR-TESTNET",
-            Blockchain::Evm => "EVM",
-            Blockchain::EvmTestnet => "EVM-TESTNET",
-            Blockchain::Uni => "UNI",
-            Blockchain::UniSepolia => "UNI-SEPOLIA",
-            Blockchain::Base => "BASE",
-            Blockchain::BaseSepolia => "BASE-SEPOLIA",
-            Blockchain::Op => "OP",
-            Blockchain::OpSepolia => "OP-SEPOLIA",
-            Blockchain::Aptos => "APTOS",
-            Blockchain::AptosTestnet => "APTOS-TESTNET",
-        }
-    }
-}
-
-impl Serialize for Blockchain {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(self.as_str())
-    }
 }
 
 /// Account type enum
@@ -965,4 +903,417 @@ pub struct CreateTransferTransactionResponse {
 
     /// Current state of the transaction
     pub state: String,
+}
+
+/// Request structure for validating an address
+#[derive(Debug, Serialize)]
+pub struct ValidateAddressBody {
+    pub address: String,
+}
+
+/// Response structure for validating an address
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidateAddressResponse {
+    pub is_valid: bool,
+}
+
+/// ABI parameter types for contract execution
+#[derive(Debug, Serialize, Clone)]
+#[serde(untagged)]
+pub enum AbiParameter {
+    String(String),
+    Integer(i64),
+    Boolean(bool),
+    Array(Vec<AbiParameter>),
+}
+
+/// Request structure for estimating contract execution fee
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EstimateContractExecutionFeeBody {
+    /// The blockchain address of the contract to be executed
+    pub contract_address: String,
+
+    /// The contract ABI function signature (e.g., "burn(uint256)")
+    /// Cannot be used simultaneously with callData
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_function_signature: Option<String>,
+
+    /// The contract ABI function signature parameters
+    /// Should be used exclusively with abiFunctionSignature
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_parameters: Option<Vec<AbiParameter>>,
+
+    /// The raw transaction data (hexadecimal string with 0x prefix)
+    /// Mutually exclusive with abiFunctionSignature and abiParameters
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_data: Option<String>,
+
+    /// The amount of native token to send (optional, for payable functions only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub amount: Option<String>,
+
+    /// Blockchain associated with the transaction
+    /// Required along with sourceAddress if walletId is not provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockchain: Option<String>,
+
+    /// Source address of the transaction
+    /// Required along with blockchain if walletId is not provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_address: Option<String>,
+
+    /// Unique system generated identifier of the wallet
+    /// Mutually exclusive with sourceAddress and blockchain
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wallet_id: Option<String>,
+}
+
+/// Fee estimation data for contract execution
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EstimateContractExecutionFeeResponse {
+    /// High fee level estimation
+    pub high: EstimatedFee,
+
+    /// Low fee level estimation
+    pub low: EstimatedFee,
+
+    /// Medium fee level estimation
+    pub medium: EstimatedFee,
+
+    /// ERC-4337 gas field: amount of gas for main execution call (SCA only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_gas_limit: Option<String>,
+
+    /// ERC-4337 gas field: amount of gas for verification step (SCA only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verification_gas_limit: Option<String>,
+
+    /// ERC-4337 gas field: gas to compensate bundler for pre-verification (SCA only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pre_verification_gas: Option<String>,
+}
+
+/// Request structure for estimating transfer transaction fee
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EstimateTransferFeeRequest {
+    /// Blockchain address of the destination
+    pub destination_address: String,
+
+    /// Transfer amounts in decimal number format (at least one required)
+    /// For ERC721 token transfer, must be ["1"]
+    pub amounts: Vec<String>,
+
+    /// List of NFT token IDs (batch transfers supported for ERC-1155 only)
+    /// Length must match amounts length
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nft_token_ids: Option<Vec<String>>,
+
+    /// Source address of the transaction
+    /// Required with blockchain if walletId is not provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_address: Option<String>,
+
+    /// System generated identifier of the token
+    /// Excluded with tokenAddress and blockchain
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_id: Option<String>,
+
+    /// Blockchain address of the transferred token (empty for native tokens)
+    /// Excluded with tokenId
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_address: Option<String>,
+
+    /// Blockchain of the transferred token
+    /// Required if tokenId is not provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blockchain: Option<String>,
+
+    /// Unique system generated identifier of the wallet
+    /// Mutually exclusive with sourceAddress and blockchain
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wallet_id: Option<String>,
+}
+
+/// Response structure for estimating transfer transaction fee
+/// Reuses the same structure as contract execution fee estimation
+pub type EstimateTransferFeeResponse = EstimateContractExecutionFeeResponse;
+
+/// ABI parameter types for contract queries
+#[derive(Debug, Serialize, Clone)]
+#[serde(untagged)]
+pub enum ContractAbiParameter {
+    String(String),
+    Integer(i64),
+    Boolean(bool),
+    Array(Vec<ContractAbiParameter>),
+}
+
+/// Request structure for querying a contract
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryContractRequest {
+    /// The blockchain network (required)
+    pub blockchain: String,
+
+    /// Address of the contract to be queried (required)
+    pub address: String,
+
+    /// The contract ABI function signature (e.g., "balanceOf(address)")
+    /// Cannot be used simultaneously with callData
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_function_signature: Option<String>,
+
+    /// The contract ABI function signature parameters
+    /// Should be used exclusively with abiFunctionSignature
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_parameters: Option<Vec<ContractAbiParameter>>,
+
+    /// The contract's ABI in a JSON stringified format
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_json: Option<String>,
+
+    /// CallData is input data that encodes method and parameters
+    /// Mutually exclusive with abiFunctionSignature and abiParameters
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_data: Option<String>,
+
+    /// FromAddress is the address that will populate msg.sender in the contract call
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub from_address: Option<String>,
+}
+
+/// Output value types for contract query results
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(untagged)]
+pub enum ContractOutputValue {
+    String(String),
+    Number(f64),
+    Boolean(bool),
+}
+
+/// Response data for contract query
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryContractResponse {
+    /// Output for the ABI interaction
+    /// May be null if the contract call returns no values
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_values: Option<Vec<ContractOutputValue>>,
+
+    /// OutputData is output in hex format
+    pub output_data: String,
+}
+
+/// SCA Core version enum for wallet upgrades
+#[derive(Debug, Clone, Serialize)]
+pub enum ScaCore {
+    #[serde(rename = "circle_6900_singleowner_v3")]
+    Circle6900SingleownerV3,
+}
+
+impl ScaCore {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ScaCore::Circle6900SingleownerV3 => "circle_6900_singleowner_v3",
+        }
+    }
+}
+
+/// Request structure for creating a wallet upgrade transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateWalletUpgradeTransactionRequest {
+    /// Unique system generated identifier of the wallet
+    pub wallet_id: String,
+
+    /// A base64 string expression of the entity secret ciphertext
+    pub entity_secret_ciphertext: String,
+
+    /// Version of the SCA available for upgrade
+    pub new_sca_core: String,
+
+    /// UUID v4 for idempotency
+    pub idempotency_key: String,
+
+    /// A dynamic blockchain fee level setting (LOW, MEDIUM, or HIGH)
+    /// Cannot be used with gasPrice, priorityFee, or maxFee
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fee_level: Option<FeeLevel>,
+
+    /// The maximum units of gas to use for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_limit: Option<String>,
+
+    /// For blockchains without EIP-1559 support, the maximum price of gas, in gwei
+    /// Requires gasLimit. Cannot be used with feeLevel, priorityFee, or maxFee
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_price: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the maximum price per unit of gas, in gwei
+    /// Requires priorityFee and gasLimit. Cannot be used with feeLevel or gasPrice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_fee: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the "tip", in gwei
+    /// Requires maxFee and gasLimit. Cannot be used with feeLevel or gasPrice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority_fee: Option<String>,
+
+    /// Optional reference or description used to identify the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ref_id: Option<String>,
+}
+
+/// Response structure for creating a wallet upgrade transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateWalletUpgradeTransactionResponse {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+
+    /// Current state of the transaction
+    pub state: String,
+}
+
+/// Request structure for creating a contract execution transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateContractExecutionTransactionRequest {
+    /// Unique system generated identifier of the wallet
+    pub wallet_id: String,
+
+    /// A base64 string expression of the entity secret ciphertext
+    pub entity_secret_ciphertext: String,
+
+    /// The blockchain address of the contract to be executed
+    pub contract_address: String,
+
+    /// UUID v4 for idempotency
+    pub idempotency_key: String,
+
+    /// The contract ABI function signature (e.g., "burn(uint256)")
+    /// Cannot be used simultaneously with callData
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_function_signature: Option<String>,
+
+    /// The contract ABI function signature parameters
+    /// Should be used exclusively with abiFunctionSignature
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub abi_parameters: Option<Vec<AbiParameter>>,
+
+    /// The raw transaction data (hexadecimal string with 0x prefix)
+    /// Mutually exclusive with abiFunctionSignature and abiParameters
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_data: Option<String>,
+
+    /// The amount of native token to send (optional, for payable functions only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub amount: Option<String>,
+
+    /// A dynamic blockchain fee level setting (LOW, MEDIUM, or HIGH)
+    /// Cannot be used with gasPrice, priorityFee, or maxFee
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fee_level: Option<FeeLevel>,
+
+    /// The maximum units of gas to use for the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_limit: Option<String>,
+
+    /// For blockchains without EIP-1559 support, the maximum price of gas, in gwei
+    /// Requires gasLimit. Cannot be used with feeLevel, priorityFee, or maxFee
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_price: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the maximum price per unit of gas, in gwei
+    /// Requires priorityFee and gasLimit. Cannot be used with feeLevel or gasPrice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_fee: Option<String>,
+
+    /// For blockchains with EIP-1559 support, the "tip", in gwei
+    /// Requires maxFee and gasLimit. Cannot be used with feeLevel or gasPrice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority_fee: Option<String>,
+
+    /// Optional reference or description used to identify the transaction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ref_id: Option<String>,
+}
+
+/// Response structure for creating a contract execution transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateContractExecutionTransactionResponse {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+
+    /// Current state of the transaction
+    pub state: String,
+}
+
+/// Request structure for canceling a transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CancelTransactionRequest {
+    /// A base64 string expression of the entity secret ciphertext
+    pub entity_secret_ciphertext: String,
+
+    /// UUID v4 for idempotency
+    pub idempotency_key: String,
+}
+
+/// Response structure for canceling a transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CancelTransactionResponse {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+
+    /// Current state of the transaction
+    pub state: String,
+}
+
+/// Request structure for accelerating a transaction
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccelerateTransactionRequest {
+    /// A base64 string expression of the entity secret ciphertext
+    pub entity_secret_ciphertext: String,
+
+    /// UUID v4 for idempotency
+    pub idempotency_key: String,
+}
+
+/// Response structure for accelerating a transaction
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccelerateTransactionResponse {
+    /// System-generated unique identifier of the resource
+    pub id: String,
+}
+
+/// Request structure for requesting testnet tokens from faucet
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestTestnetTokensRequest {
+    /// The testnet blockchain network
+    pub blockchain: Blockchain,
+
+    /// Blockchain address to receive tokens
+    pub address: String,
+
+    /// Request native testnet tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub native: Option<bool>,
+
+    /// Request USDC testnet tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usdc: Option<bool>,
+
+    /// Request EURC testnet tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eurc: Option<bool>,
 }

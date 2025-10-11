@@ -1,11 +1,12 @@
 use crate::helper::CircleResult;
-use crate::wallet::dto::{AccountType, Blockchain, WalletMetadata};
+use crate::types::Blockchain;
+use crate::wallet::dto::{AccountType, WalletMetadata};
 
 /// Builder for CreateWalletsRequest
 #[derive(Clone, Debug)]
 pub struct CreateWalletRequestBuilder {
     pub(crate) wallet_set_id: String,
-    pub(crate) blockchains: Vec<String>,
+    pub(crate) blockchains: Vec<Blockchain>,
     pub(crate) account_type: Option<String>,
     pub(crate) count: Option<u32>,
     pub(crate) metadata: Option<Vec<WalletMetadata>>,
@@ -20,12 +21,10 @@ impl CreateWalletRequestBuilder {
     /// Entity secret encryption and UUID generation happen at request time for uniqueness
     pub fn new(wallet_set_id: String, blockchains: Vec<Blockchain>) -> CircleResult<Self> {
         dotenv::dotenv().ok();
-        let blockchain_strings: Vec<String> =
-            blockchains.iter().map(|b| b.as_str().to_string()).collect();
 
         Ok(Self {
             wallet_set_id,
-            blockchains: blockchain_strings,
+            blockchains,
             account_type: None,
             count: None,
             metadata: None,

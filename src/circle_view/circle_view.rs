@@ -26,11 +26,22 @@ impl CircleView {
     }
 
     /// Generic request method for read operations
-    pub async fn request<R>(&self, path: &str) -> CircleResult<R>
+    pub async fn request<T, R>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&T>,
+    ) -> CircleResult<R>
     where
+        T: Serialize,
         R: for<'de> serde::Deserialize<'de>,
     {
-        let request = self.client.request(Method::GET, path)?;
+        let mut request = self.client.request(method, path)?;
+
+        if let Some(body) = body {
+            request = request.json(body);
+        }
+
         self.client.execute(request).await
     }
 
@@ -47,7 +58,7 @@ impl CircleView {
             format!("{}?{}", path, query_string)
         };
 
-        self.request(&full_path).await
+        self.request::<(), R>(Method::GET, &full_path, None).await
     }
 
     /// GET request helper
@@ -55,7 +66,35 @@ impl CircleView {
     where
         R: for<'de> serde::Deserialize<'de>,
     {
-        self.request(path).await
+        self.request::<(), R>(Method::GET, path, None).await
+    }
+
+    /// GET request helper for endpoints that return plain JSON (not wrapped in data field)
+    pub async fn get_plain<R>(&self, path: &str) -> CircleResult<R>
+    where
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        let request = self.client.request(Method::GET, path)?;
+        let response = request.send().await?;
+
+        let status = response.status();
+        let response_text = response.text().await?;
+        println!("Response text: {}", response_text);
+
+        if status.is_success() {
+            let result: R = serde_json::from_str(&response_text)?;
+            Ok(result)
+        } else {
+            use crate::helper::{CircleError, CircleErrorResponse};
+            let error_message = match serde_json::from_str::<CircleErrorResponse>(&response_text) {
+                Ok(error_resp) => error_resp.message,
+                Err(_) => response_text,
+            };
+            Err(CircleError::Api {
+                status: status.as_u16(),
+                message: error_message,
+            })
+        }
     }
 
     /// GET request with query parameters helper
@@ -65,5 +104,66 @@ impl CircleView {
         R: for<'de> serde::Deserialize<'de>,
     {
         self.request_with_params(path, params).await
+    }
+
+    /// POST request helper
+    pub async fn post<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
+    where
+        T: Serialize,
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        self.request::<T, R>(Method::POST, path, Some(body)).await
+    }
+
+    /// PUT request helper
+    pub async fn put<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
+    where
+        T: Serialize,
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        self.request::<T, R>(Method::PUT, path, Some(body)).await
+    }
+
+    /// PATCH request helper
+    pub async fn patch<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
+    where
+        T: Serialize,
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        self.request::<T, R>(Method::PATCH, path, Some(body)).await
+    }
+
+    /// DELETE request helper
+    pub async fn delete<R>(&self, path: &str) -> CircleResult<R>
+    where
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        self.request::<(), R>(Method::DELETE, path, None).await
+    }
+
+    /// DELETE request helper that expects no response body
+    pub async fn delete_no_content(&self, path: &str) -> CircleResult<()> {
+        use crate::helper::{CircleError, CircleErrorResponse};
+
+        let request = self.client.request(Method::DELETE, path)?;
+        let response = request.send().await?;
+
+        let status = response.status();
+        if status.is_success() {
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+
+            // Try to parse error response
+            let error_message = match serde_json::from_str::<CircleErrorResponse>(&response_text) {
+                Ok(error_resp) => error_resp.message,
+                Err(_) => response_text,
+            };
+
+            Err(CircleError::Api {
+                status: status.as_u16(),
+                message: error_message,
+            })
+        }
     }
 }
