@@ -1,11 +1,11 @@
 [package]
 name = "inf-circle-sdk"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Spielcrypto <fjnavarro@spielcrypto.com>"]
 description = "Rust SDK for Circle's API with clean separation of read and write operations"
 license = "MIT"
-repository = "https://github.com/Inferenco/inf-circle-sdk"  # UPDATE THIS
+repository = "https://github.com/Inferenco/inf-circle-sdk"
 homepage = "https://github.com/Inferenco/inf-circle-sdk"  
 documentation = "https://docs.rs/inf-circle-sdk"              
 readme = "README.md"                                          
