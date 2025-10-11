@@ -126,13 +126,13 @@
 //!
 //! The `examples/` directory contains comprehensive examples for all major features:
 //!
-//! - **[circle_ops_example.rs](https://github.com/your-repo/examples/circle_ops_example.rs)**: Wallet creation
-//! - **[transfer_transaction_example.rs](https://github.com/your-repo/examples/transfer_transaction_example.rs)**: Native and ERC-20 token transfers
-//! - **[contract_interaction_example.rs](https://github.com/your-repo/examples/contract_interaction_example.rs)**: Execute contract functions
-//! - **[deploy_contract_example.rs](https://github.com/your-repo/examples/deploy_contract_example.rs)**: Deploy custom contracts
-//! - **[create_event_monitor_example.rs](https://github.com/your-repo/examples/create_event_monitor_example.rs)**: Monitor contract events
-//! - **[sign_message_example.rs](https://github.com/your-repo/examples/sign_message_example.rs)**: Sign messages and typed data
-//! - **[transaction_management_example.rs](https://github.com/your-repo/examples/transaction_management_example.rs)**: Cancel and accelerate transactions
+//! - **[circle_ops_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/circle_ops_example.rs)**: Wallet creation
+//! - **[transfer_transaction_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/transfer_transaction_example.rs)**: Native and ERC-20 token transfers
+//! - **[contract_interaction_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/contract_interaction_example.rs)**: Execute contract functions
+//! - **[deploy_contract_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/deploy_contract_example.rs)**: Deploy custom contracts
+//! - **[create_event_monitor_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/create_event_monitor_example.rs)**: Monitor contract events
+//! - **[sign_message_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/sign_message_example.rs)**: Sign messages and typed data
+//! - **[transaction_management_example.rs](https://github.com/Inferenco/inf-circle-sdk/examples/transaction_management_example.rs)**: Cancel and accelerate transactions
 //!
 //! Run any example with:
 //! ```bash
@@ -171,7 +171,7 @@
 //!
 //! ## Testing
 //!
-//! See [TESTING.md](https://github.com/your-repo/TESTING.md) for comprehensive testing guide.
+//! See [TESTING.md](https://github.com/Inferenco/inf-circle-sdk/TESTING.md) for comprehensive testing guide.
 
 pub mod circle_ops;
 pub mod circle_view;
