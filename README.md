@@ -23,6 +23,7 @@ This separation ensures that read-only processes do not require access to sensit
 - **Fluent Builders**: Easy-to-use builders for constructing complex API requests.
 - **Comprehensive Error Handling**: Detailed error types to simplify debugging.
 - **Extensible**: Modular design makes it easy to add new API endpoints.
+- **Smart Contract Support**: Deploy contracts, estimate fees, manage notifications, and more.
 
 ## Installation
 
@@ -127,6 +128,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+```
+
+## Testing
+
+The SDK includes comprehensive integration tests. To run them, you'll need to set up your environment:
+
+### Required Environment Variables
+
+```bash
+CIRCLE_BASE_URL="https://api.circle.com"
+CIRCLE_API_KEY="YOUR_API_KEY"
+CIRCLE_ENTITY_SECRET="YOUR_ENTITY_SECRET_HEX"
+CIRCLE_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nYOUR_RSA_PUBLIC_KEY\n-----END PUBLIC KEY-----"
+CIRCLE_WALLET_SET_ID="YOUR_WALLET_SET_ID"
+CIRCLE_TEMPLATE_ID="YOUR_CONTRACT_TEMPLATE_ID"
+```
+
+### Webhook Testing
+
+The notification subscription tests require a publicly accessible webhook endpoint because Circle validates endpoints by making HTTP requests to them.
+
+**Quick Setup:**
+```bash
+# Use the helper script (auto-detects tunnelto or ngrok)
+./scripts/start_webhook_server.sh
+
+# Export the URL shown and run tests
+export CIRCLE_TEST_WEBHOOK_URL="<url-from-script>"
+cargo test test_notification_subscriptions_crud
+```
+
+**For detailed webhook setup options (tunnelto, ngrok, webhook.site, custom subdomains), see [scripts/README.md](scripts/README.md).**
+
+If you don't set `CIRCLE_TEST_WEBHOOK_URL`, the notification subscription test will be automatically skipped.
+
+### Running Tests
+
+```bash
+# Run all tests
+cargo test
+
+# Run specific test
+cargo test test_notification_subscriptions_crud
+
+# Run with output
+cargo test -- --nocapture
 ```
 
 ## Contributing

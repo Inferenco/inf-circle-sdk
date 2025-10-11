@@ -1,5 +1,9 @@
+pub mod accelerate_transaction;
+pub mod cancel_transaction;
+pub mod create_contract_transaction;
 pub mod create_transfer_transaction;
 pub mod create_wallet;
+pub mod create_wallet_upgrade_transaction;
 pub mod sign_data;
 pub mod sign_delegate;
 pub mod sign_message;

@@ -5,15 +5,25 @@ use crate::{
     helper::CircleResult,
     wallet::{
         dto::{
-            CreateTransferTransactionRequest, CreateTransferTransactionResponse,
-            CreateWalletRequest, SignDataRequest, SignDelegateRequest, SignDelegateResponse,
-            SignMessageRequest, SignTransactionRequest, SignTransactionResponse, SignatureResponse,
-            UpdateWalletRequest, WalletResponse, WalletsResponse,
+            AccelerateTransactionRequest, AccelerateTransactionResponse, CancelTransactionRequest,
+            CancelTransactionResponse, CreateContractExecutionTransactionRequest,
+            CreateContractExecutionTransactionResponse, CreateTransferTransactionRequest,
+            CreateTransferTransactionResponse, CreateWalletRequest,
+            CreateWalletUpgradeTransactionRequest, CreateWalletUpgradeTransactionResponse,
+            QueryContractRequest, QueryContractResponse, SignDataRequest, SignDelegateRequest,
+            SignDelegateResponse, SignMessageRequest, SignTransactionRequest,
+            SignTransactionResponse, SignatureResponse, UpdateWalletRequest, WalletResponse,
+            WalletsResponse,
         },
         ops::{
+            accelerate_transaction::AccelerateTransactionRequestBuilder,
+            cancel_transaction::CancelTransactionRequestBuilder,
+            create_contract_transaction::CreateContractExecutionTransactionRequestBuilder,
             create_transfer_transaction::CreateTransferTransactionRequestBuilder,
-            create_wallet::CreateWalletRequestBuilder, sign_data::SignDataRequestBuilder,
-            sign_delegate::SignDelegateRequestBuilder, sign_message::SignMessageRequestBuilder,
+            create_wallet::CreateWalletRequestBuilder,
+            create_wallet_upgrade_transaction::CreateWalletUpgradeTransactionRequestBuilder,
+            sign_data::SignDataRequestBuilder, sign_delegate::SignDelegateRequestBuilder,
+            sign_message::SignMessageRequestBuilder,
             sign_transaction::SignTransactionRequestBuilder,
         },
     },
@@ -163,13 +173,124 @@ impl CircleOps {
         let path = format!("/v1/w3s/developer/transactions/transfer");
         self.post(&path, &request).await
     }
+
+    /// Query a contract
+    ///
+    /// Execute a query function on a contract by providing the address and blockchain
+    pub async fn query_contract(
+        &self,
+        request: QueryContractRequest,
+    ) -> CircleResult<QueryContractResponse> {
+        self.post("/v1/w3s/contracts/query", &request).await
+    }
+
+    /// Create a contract execution transaction
+    ///
+    /// Creates a transaction which executes a smart contract
+    pub async fn create_contract_execution_transaction(
+        &self,
+        builder: CreateContractExecutionTransactionRequestBuilder,
+    ) -> CircleResult<CreateContractExecutionTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = CreateContractExecutionTransactionRequest {
+            wallet_id: builder.wallet_id,
+            entity_secret_ciphertext,
+            contract_address: builder.contract_address,
+            idempotency_key: builder.idempotency_key,
+            abi_function_signature: builder.abi_function_signature,
+            abi_parameters: builder.abi_parameters,
+            call_data: builder.call_data,
+            amount: builder.amount,
+            fee_level: builder.fee_level,
+            gas_limit: builder.gas_limit,
+            gas_price: builder.gas_price,
+            max_fee: builder.max_fee,
+            priority_fee: builder.priority_fee,
+            ref_id: builder.ref_id,
+        };
+
+        self.post("/v1/w3s/developer/transactions/contractExecution", &request)
+            .await
+    }
+
+    /// Create a wallet upgrade transaction
+    ///
+    /// Creates a transaction which upgrades a wallet to a new SCA core version
+    pub async fn create_wallet_upgrade_transaction(
+        &self,
+        builder: CreateWalletUpgradeTransactionRequestBuilder,
+    ) -> CircleResult<CreateWalletUpgradeTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = CreateWalletUpgradeTransactionRequest {
+            wallet_id: builder.wallet_id,
+            entity_secret_ciphertext,
+            new_sca_core: builder.new_sca_core.as_str().to_string(),
+            idempotency_key: builder.idempotency_key,
+            fee_level: builder.fee_level,
+            gas_limit: builder.gas_limit,
+            gas_price: builder.gas_price,
+            max_fee: builder.max_fee,
+            priority_fee: builder.priority_fee,
+            ref_id: builder.ref_id,
+        };
+
+        self.post("/v1/w3s/developer/transactions/walletUpgrade", &request)
+            .await
+    }
+
+    /// Cancel a transaction
+    ///
+    /// Cancels a specified transaction from a developer-controlled wallet.
+    /// This is a best-effort operation and won't be effective if the original transaction
+    /// has already been processed by the blockchain. Gas fees may still be incurred.
+    pub async fn cancel_transaction(
+        &self,
+        builder: CancelTransactionRequestBuilder,
+    ) -> CircleResult<CancelTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = CancelTransactionRequest {
+            entity_secret_ciphertext,
+            idempotency_key: builder.idempotency_key,
+        };
+
+        let path = format!(
+            "/v1/w3s/developer/transactions/{}/cancel",
+            builder.transaction_id
+        );
+        self.post(&path, &request).await
+    }
+
+    /// Accelerate a transaction
+    ///
+    /// Accelerates a specified transaction from a developer-controlled wallet.
+    /// Additional gas fees may be incurred.
+    pub async fn accelerate_transaction(
+        &self,
+        builder: AccelerateTransactionRequestBuilder,
+    ) -> CircleResult<AccelerateTransactionResponse> {
+        let entity_secret_ciphertext = self.entity_secret()?;
+
+        let request = AccelerateTransactionRequest {
+            entity_secret_ciphertext,
+            idempotency_key: builder.idempotency_key,
+        };
+
+        let path = format!(
+            "/v1/w3s/developer/transactions/{}/accelerate",
+            builder.transaction_id
+        );
+        self.post(&path, &request).await
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::wallet::{
-        dto::{AccountType, Blockchain},
-        ops::create_wallet::CreateWalletRequestBuilder,
+    use crate::{
+        types::Blockchain,
+        wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder},
     };
 
     #[test]
@@ -186,7 +307,7 @@ mod tests {
         .build();
 
         assert_eq!(builder.wallet_set_id, "test-wallet-set-id");
-        assert_eq!(builder.blockchains, vec!["ETH-SEPOLIA"]);
+        assert_eq!(builder.blockchains, vec![Blockchain::EthSepolia]);
         assert_eq!(builder.account_type, Some("SCA".to_string()));
         assert_eq!(builder.count, Some(5));
         assert_eq!(builder.name, Some("Test Wallet".to_string()));
