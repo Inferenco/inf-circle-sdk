@@ -6,14 +6,12 @@ use inf_circle_sdk::{
     circle_ops::circler_ops::CircleOps,
     circle_view::circle_view::CircleView,
     contract::ops::deploy_contract_from_template::DeployContractFromTemplateRequestBuilder,
-    helper::{parse_near_public_key, serialize_near_delegate_action_to_base64, PaginationParams},
-    types::Blockchain,
-    wallet::{
+    dev_wallet::{
         dto::{
-            AbiParameter, AccountType, EstimateContractExecutionFeeBody,
-            EstimateTransferFeeRequest, FeeLevel, ListWalletsParams, QueryContractRequest,
-            QueryParams, RequestTestnetTokensRequest, ScaCore, UpdateWalletRequest, Wallet,
-            WalletMetadata,
+            AbiParameter, AccountType, DevWallet, DevWalletMetadata,
+            EstimateContractExecutionFeeBody, EstimateTransferFeeRequest, FeeLevel,
+            ListDevWalletsParams, QueryContractRequest, QueryParams, RequestTestnetTokensRequest,
+            ScaCore, UpdateDevWalletRequest,
         },
         ops::{
             accelerate_transaction::AccelerateTransactionRequestBuilder,
@@ -28,11 +26,13 @@ use inf_circle_sdk::{
         },
         views::{
             list_transactions::ListTransactionsParamsBuilder,
-            list_wallets::ListWalletsParamsBuilder,
+            list_wallets::ListDevWalletsParamsBuilder,
             list_wallets_with_balances::ListWalletsWithBalancesParamsBuilder,
             query::QueryParamsBuilder,
         },
     },
+    helper::{parse_near_public_key, serialize_near_delegate_action_to_base64, PaginationParams},
+    types::Blockchain,
 };
 use std::env;
 
@@ -44,12 +44,12 @@ async fn get_or_create_sca_wallet(
     view: &CircleView,
     wallet_set_id: &str,
     blockchain: &Blockchain,
-) -> Result<Wallet, Box<dyn std::error::Error>> {
+) -> Result<DevWallet, Box<dyn std::error::Error>> {
     let blockchain_str = blockchain.as_str().to_lowercase();
     let ref_id = format!("test-sca-wallet-{}", blockchain_str);
 
     // Try to find existing wallet by ref_id
-    let list_params = ListWalletsParams {
+    let list_params = ListDevWalletsParams {
         address: None,
         blockchain: None,
         sca_core: None,
@@ -80,7 +80,7 @@ async fn get_or_create_sca_wallet(
     let create_request =
         CreateWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])?
             .account_type(AccountType::Sca)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some(format!("Test SCA Wallet - {}", blockchain.as_str())),
                 ref_id: Some(ref_id.clone()),
             }])
@@ -107,7 +107,7 @@ async fn get_or_create_sca_wallet(
 /// or fall back to a known USDC contract address.
 async fn get_or_deploy_test_contract(
     ops: &CircleOps,
-    wallet: &Wallet,
+    wallet: &DevWallet,
     blockchain: &Blockchain,
 ) -> Result<String, Box<dyn std::error::Error>> {
     // For Sepolia testnet, use the USDC contract as a known good contract
@@ -172,7 +172,7 @@ async fn get_or_deploy_test_contract(
 /// requests testnet tokens from the faucet.
 async fn ensure_wallet_funded(
     view: &CircleView,
-    wallet: &Wallet,
+    wallet: &DevWallet,
     blockchain: &Blockchain,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Check if this is a testnet blockchain
@@ -321,7 +321,7 @@ async fn test_wallet_lifecycle() {
         CreateWalletRequestBuilder::new(wallet_set_id.clone(), vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("Integration Test Wallet".to_string()),
                 ref_id: Some("test-ref-123".to_string()),
             }])
@@ -346,7 +346,7 @@ async fn test_wallet_lifecycle() {
     );
 
     // 3. Update the wallet
-    let update_request = UpdateWalletRequest {
+    let update_request = UpdateDevWalletRequest {
         name: Some("Updated Test Wallet".to_string()),
         ref_id: Some("test-ref-123".to_string()),
     };
@@ -365,7 +365,7 @@ async fn test_wallet_lifecycle() {
     );
 
     // 4. List wallets and verify the updated wallet is present
-    let list_params = ListWalletsParamsBuilder::new()
+    let list_params = ListDevWalletsParamsBuilder::new()
         .wallet_set_id(wallet_set_id)
         .build();
 
@@ -441,7 +441,7 @@ async fn test_get_token_balances() {
         CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("Token Balance Test Wallet".to_string()),
                 ref_id: Some("token-balance-test".to_string()),
             }])
@@ -505,7 +505,7 @@ async fn test_get_nfts() {
         CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("NFT Test Wallet".to_string()),
                 ref_id: Some("nft-test".to_string()),
             }])
@@ -654,7 +654,7 @@ async fn test_sign_data() {
         CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("Sign Data Test Wallet".to_string()),
                 ref_id: Some("sign-data-test".to_string()),
             }])
@@ -740,7 +740,7 @@ async fn test_sign_transaction() {
         CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EvmTestnet])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("Sign Transaction Test Wallet".to_string()),
                 ref_id: Some("sign-transaction-test".to_string()),
             }])
@@ -820,7 +820,7 @@ async fn test_sign_delegate_near() {
         CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::NearTestnet])
             .unwrap()
             .account_type(AccountType::Eoa)
-            .metadata(vec![WalletMetadata {
+            .metadata(vec![DevWalletMetadata {
                 name: Some("Sign Delegate NEAR Test Wallet".to_string()),
                 ref_id: Some("sign-delegate-near-test".to_string()),
             }])

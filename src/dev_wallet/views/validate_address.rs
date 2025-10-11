@@ -1,4 +1,4 @@
-use crate::wallet::dto::ValidateAddressBody;
+use crate::dev_wallet::dto::ValidateAddressBody;
 
 pub struct ValidateAddressBodyBuilder {
     address: String,

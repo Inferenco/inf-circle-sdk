@@ -1,5 +1,5 @@
+use crate::dev_wallet::dto::ListWalletsWithBalancesParams;
 use crate::helper::PaginationParams;
-use crate::wallet::dto::ListWalletsWithBalancesParams;
 use chrono::{DateTime, Utc};
 
 /// Builder for ListWalletsWithBalancesParams

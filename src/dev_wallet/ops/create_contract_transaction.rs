@@ -1,4 +1,4 @@
-use crate::wallet::dto::{AbiParameter, FeeLevel};
+use crate::dev_wallet::dto::{AbiParameter, FeeLevel};
 
 #[derive(Clone, Debug)]
 pub struct CreateContractExecutionTransactionRequestBuilder {

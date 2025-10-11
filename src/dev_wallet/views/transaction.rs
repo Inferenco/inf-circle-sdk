@@ -1,4 +1,4 @@
-use crate::wallet::dto::TransactionParams;
+use crate::dev_wallet::dto::TransactionParams;
 
 pub struct TransactionParamsBuilder {
     params: TransactionParams,

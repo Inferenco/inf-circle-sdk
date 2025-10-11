@@ -1,4 +1,4 @@
-use crate::wallet::dto::{FeeLevel, ScaCore};
+use crate::dev_wallet::dto::{FeeLevel, ScaCore};
 
 #[derive(Clone, Debug)]
 pub struct CreateWalletUpgradeTransactionRequestBuilder {
