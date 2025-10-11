@@ -17,13 +17,18 @@ This separation ensures that read-only processes do not require access to sensit
 
 ## Features
 
-- **Clean Separation**: `CircleOps` for writes, `CircleView` for reads.
-- **Async First**: Built on `tokio` for non-blocking, asynchronous operations.
-- **Type-Safe**: Strongly typed request and response structures to prevent common errors.
-- **Fluent Builders**: Easy-to-use builders for constructing complex API requests.
-- **Comprehensive Error Handling**: Detailed error types to simplify debugging.
-- **Extensible**: Modular design makes it easy to add new API endpoints.
-- **Smart Contract Support**: Deploy contracts, estimate fees, manage notifications, and more.
+- ✅ **Clean Separation**: `CircleOps` for writes, `CircleView` for reads
+- ✅ **Async First**: Built on `tokio` for non-blocking, asynchronous operations
+- ✅ **Type-Safe**: Strongly typed request and response structures to prevent common errors
+- ✅ **Fluent Builders**: Easy-to-use builders for constructing complex API requests
+- ✅ **Comprehensive Error Handling**: Detailed error types to simplify debugging
+- ✅ **Developer Wallets**: Create, manage, and transact with EOA and SCA wallets
+- ✅ **Smart Contracts**: Deploy, import, query, and interact with smart contracts
+- ✅ **Event Monitoring**: Create monitors for contract events and retrieve event logs
+- ✅ **Webhook Notifications**: Subscribe to and manage webhook notifications
+- ✅ **Transaction Management**: Cancel and accelerate pending transactions
+- ✅ **Message Signing**: Sign messages, typed data (EIP-712), and transactions
+- ✅ **Comprehensive Documentation**: 31 passing doc tests with working examples
 
 ## Installation
 
@@ -55,79 +60,116 @@ CIRCLE_WALLET_SET_ID="YOUR_WALLET_SET_ID"
 - The entity secret is automatically encrypted using RSA-OAEP with SHA-256 at request time
 - Each API call generates a fresh encryption and unique UUID for security
 
-### CircleOps: Write Operations
+### Quick Start Examples
 
-Use `CircleOps` to create, update, or otherwise modify resources.
+#### Create a Wallet
 
 ```rust
-use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
-use inf_circle_sdk::wallet::{
-    dto::{AccountType, Blockchain},
-    wallet_ops::CreateWalletRequestBuilder,
+use inf_circle_sdk::{
+    circle_ops::circler_ops::CircleOps,
+    dev_wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder},
+    types::Blockchain,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize CircleOps from environment variables
     let ops = CircleOps::new()?;
+    let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 
-    // Get wallet set ID from environment variables
-    let wallet_set_id =
-        std::env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID must be set");
-
-    // Build the request to create a new SCA wallet on Ethereum Sepolia
-    // The entity secret will be automatically encrypted at request time using CIRCLE_ENTITY_SECRET and CIRCLE_PUBLIC_KEY
-    let request_builder = CreateWalletRequestBuilder::new(
+    let builder = CreateWalletRequestBuilder::new(
         wallet_set_id,
-        vec![Blockchain::EthSepolia],
-    )
+        vec![Blockchain::EthSepolia]
+    )?
     .account_type(AccountType::Sca)
     .count(1)
-    .name("My First SCA Wallet".to_string())
     .build();
 
-    // Send the request and print the response
-    match ops.create_wallet(request_builder).await {
-        Ok(response) => {
-            println!("Successfully created wallets: {:#?}", response.wallets);
-        }
-        Err(e) => {
-            eprintln!("Error creating wallets: {}", e);
-        }
-    }
-
+    let response = ops.create_wallet(builder).await?;
+    println!("Created wallet: {}", response.wallets[0].address);
     Ok(())
 }
 ```
 
-### CircleView: Read Operations
-
-Use `CircleView` to fetch data from the API.
+#### Query Wallet Balances
 
 ```rust
-use inf_circle_sdk::circle_view::circle_view::CircleView;
-use inf_circle_sdk::wallet::wallet_view::ListWalletsParamsBuilder;
+use inf_circle_sdk::{
+    circle_view::circle_view::CircleView,
+    dev_wallet::views::query::QueryParamsBuilder,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize CircleView from environment variables
     let view = CircleView::new()?;
-
-    // Build the request to list the first 10 wallets
-    let params = ListWalletsParamsBuilder::new().page_size(10).build();
-
-    // Send the request and print the response
-    match view.list_wallets(Some(params)).await {
-        Ok(response) => {
-            println!("Successfully listed wallets: {:#?}", response.wallets);
-        }
-        Err(e) => {
-            eprintln!("Error listing wallets: {}", e);
-        }
+    
+    let params = QueryParamsBuilder::new().build();
+    let balances = view.get_token_balances("wallet-id", params).await?;
+    
+    for balance in balances.token_balances {
+        println!("{}: {}", balance.token.symbol.unwrap_or_default(), balance.amount);
     }
-
     Ok(())
 }
+```
+
+#### Transfer Tokens
+
+```rust
+use inf_circle_sdk::{
+    circle_ops::circler_ops::CircleOps,
+    dev_wallet::{
+        dto::FeeLevel,
+        ops::create_transfer_transaction::CreateTransferTransactionRequestBuilder,
+    },
+    types::Blockchain,
+};
+use uuid::Uuid;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let ops = CircleOps::new()?;
+
+    let builder = CreateTransferTransactionRequestBuilder::new("wallet-id".to_string())
+        .destination_address("0x1234...".to_string())
+        .amounts(vec!["0.1".to_string()])
+        .blockchain(Blockchain::EthSepolia)
+        .fee_level(FeeLevel::Medium)
+        .idempotency_key(Uuid::new_v4().to_string())
+        .build();
+
+    let response = ops.create_transfer_transaction(builder).await?;
+    println!("Transaction ID: {}", response.id);
+    Ok(())
+}
+```
+
+## Examples
+
+The SDK includes 12 comprehensive examples covering all major features:
+
+### Wallet Operations
+- **[circle_ops_example.rs](examples/circle_ops_example.rs)** - Create wallets (EOA and SCA)
+- **[wallet_balances_example.rs](examples/wallet_balances_example.rs)** - Query token balances and NFTs
+- **[transfer_transaction_example.rs](examples/transfer_transaction_example.rs)** - Transfer native tokens and ERC-20 tokens
+- **[sign_message_example.rs](examples/sign_message_example.rs)** - Sign messages and EIP-712 typed data
+- **[transaction_management_example.rs](examples/transaction_management_example.rs)** - Cancel and accelerate transactions
+
+### Contract Operations
+- **[deploy_contract_example.rs](examples/deploy_contract_example.rs)** - Deploy contracts from bytecode
+- **[import_contract_example.rs](examples/import_contract_example.rs)** - Import existing contracts
+- **[query_contract_example.rs](examples/query_contract_example.rs)** - Query contract state (read-only)
+- **[contract_interaction_example.rs](examples/contract_interaction_example.rs)** - Execute contract functions
+- **[estimate_contract_deployment_example.rs](examples/estimate_contract_deployment_example.rs)** - Estimate deployment fees
+
+### Event Monitoring
+- **[create_event_monitor_example.rs](examples/create_event_monitor_example.rs)** - Create, update, delete, and list event monitors
+
+### General
+- **[circle_view_example.rs](examples/circle_view_example.rs)** - Read operations overview
+
+Run any example with:
+```bash
+cargo run --example wallet_balances_example
 ```
 
 ## Testing
