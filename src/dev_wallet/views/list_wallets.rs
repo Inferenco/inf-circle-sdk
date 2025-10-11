@@ -1,17 +1,17 @@
+use crate::dev_wallet::dto::ListDevWalletsParams;
 use crate::helper::PaginationParams;
-use crate::wallet::dto::ListWalletsParams;
 use chrono::{DateTime, Utc};
 
 /// Builder for ListWalletsParams
-pub struct ListWalletsParamsBuilder {
-    params: ListWalletsParams,
+pub struct ListDevWalletsParamsBuilder {
+    params: ListDevWalletsParams,
 }
 
-impl ListWalletsParamsBuilder {
+impl ListDevWalletsParamsBuilder {
     /// Create a new builder
     pub fn new() -> Self {
         Self {
-            params: ListWalletsParams::default(),
+            params: ListDevWalletsParams::default(),
         }
     }
 
@@ -83,7 +83,7 @@ impl ListWalletsParamsBuilder {
     }
 
     /// Build the parameters
-    pub fn build(self) -> ListWalletsParams {
+    pub fn build(self) -> ListDevWalletsParams {
         self.params
     }
 }

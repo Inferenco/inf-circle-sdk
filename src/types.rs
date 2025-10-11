@@ -1,7 +1,48 @@
+//! Common types used across the SDK
+//!
+//! This module defines shared types, enums, and structures used throughout the SDK.
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Eq, PartialEq)]
 /// Supported blockchain networks
+///
+/// Circle supports multiple blockchain networks for wallet and contract operations.
+///
+/// # Mainnets
+///
+/// - `Eth` - Ethereum mainnet
+/// - `Avax` - Avalanche C-Chain mainnet
+/// - `Matic` - Polygon mainnet
+/// - `Sol` - Solana mainnet
+/// - `Arb` - Arbitrum One mainnet
+/// - `Near` - NEAR Protocol mainnet
+/// - `Uni` - Unichain mainnet
+/// - `Base` - Base mainnet
+/// - `Op` - Optimism mainnet
+/// - `Aptos` - Aptos mainnet
+///
+/// # Testnets
+///
+/// - `EthSepolia` - Ethereum Sepolia testnet
+/// - `AvaxFuji` - Avalanche Fuji testnet
+/// - `MaticAmoy` - Polygon Amoy testnet
+/// - `SolDevnet` - Solana devnet
+/// - `ArbSepolia` - Arbitrum Sepolia testnet
+/// - `NearTestnet` - NEAR Protocol testnet
+/// - `UniSepolia` - Unichain Sepolia testnet
+/// - `BaseSepolia` - Base Sepolia testnet
+/// - `OpSepolia` - Optimism Sepolia testnet
+/// - `AptosTestnet` - Aptos testnet
+///
+/// # Example
+///
+/// ```rust
+/// use inf_circle_sdk::types::Blockchain;
+///
+/// let blockchain = Blockchain::EthSepolia;
+/// println!("Using blockchain: {}", blockchain.as_str());  // "ETH-SEPOLIA"
+/// ```
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq)]
 pub enum Blockchain {
     #[serde(rename = "ETH")]
     Eth,

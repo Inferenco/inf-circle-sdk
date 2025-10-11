@@ -1,6 +1,31 @@
 //! CircleView module for read operations (GET)
 //!
-//! This module handles all read operations that only require base URL configuration.
+//! This module handles all read operations that only require API key authentication.
+//! No entity secret is needed, making it safe for read-only processes.
+//!
+//! # Features
+//!
+//! - Query wallet balances and NFTs
+//! - List transactions and wallets
+//! - Query smart contracts
+//! - List and manage event monitors
+//! - Estimate fees before transactions
+//! - Validate addresses
+//!
+//! # Example
+//!
+//! ```rust,no_run
+//! use inf_circle_sdk::circle_view::circle_view::CircleView;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Requires CIRCLE_API_KEY and CIRCLE_BASE_URL in env
+//!     let view = CircleView::new()?;
+//!     
+//!     // Now you can perform read operations
+//!     Ok(())
+//! }
+//! ```
 
 use crate::helper::{build_query_params, get_env_var, CircleResult, HttpClient};
 use reqwest::Method;
@@ -14,7 +39,36 @@ pub struct CircleView {
 impl CircleView {
     /// Create a new CircleView instance
     ///
-    /// Reads CIRCLE_BASE_URL from environment variables
+    /// Initializes a Circle SDK client for read-only operations. Reads configuration from
+    /// environment variables:
+    /// - `CIRCLE_API_KEY`: Your Circle API key
+    /// - `CIRCLE_BASE_URL`: Circle API base URL (e.g., https://api.circle.com)
+    ///
+    /// Unlike `CircleOps`, this does not require entity secret or public key since it only
+    /// performs read operations.
+    ///
+    /// # Returns
+    ///
+    /// Returns a configured `CircleView` instance ready to make API queries.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any required environment variable is missing or invalid.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// // Ensure .env file is loaded or environment variables are set
+    /// dotenv::dotenv().ok();
+    ///
+    /// let view = CircleView::new()?;
+    /// println!("CircleView initialized successfully!");
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn new() -> CircleResult<Self> {
         dotenv::dotenv().ok(); // Load .env file if present
 

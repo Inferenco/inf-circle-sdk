@@ -1,6 +1,6 @@
+use crate::dev_wallet::dto::{AccountType, DevWalletMetadata};
 use crate::helper::CircleResult;
 use crate::types::Blockchain;
-use crate::wallet::dto::{AccountType, WalletMetadata};
 
 /// Builder for CreateWalletsRequest
 #[derive(Clone, Debug)]
@@ -9,7 +9,7 @@ pub struct CreateWalletRequestBuilder {
     pub(crate) blockchains: Vec<Blockchain>,
     pub(crate) account_type: Option<String>,
     pub(crate) count: Option<u32>,
-    pub(crate) metadata: Option<Vec<WalletMetadata>>,
+    pub(crate) metadata: Option<Vec<DevWalletMetadata>>,
     pub(crate) name: Option<String>,
     pub(crate) ref_id: Option<String>,
     pub(crate) idempotency_key: Option<String>,
@@ -47,7 +47,7 @@ impl CreateWalletRequestBuilder {
     }
 
     /// Set wallet metadata
-    pub fn metadata(mut self, metadata: Vec<WalletMetadata>) -> Self {
+    pub fn metadata(mut self, metadata: Vec<DevWalletMetadata>) -> Self {
         self.metadata = Some(metadata);
         self
     }

@@ -26,7 +26,7 @@ impl FeeLevel {
 /// Request structure for creating wallets
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateWalletRequest {
+pub struct CreateDevWalletRequest {
     /// System-generated unique identifier of the wallet set
     pub wallet_set_id: String,
 
@@ -49,7 +49,7 @@ pub struct CreateWalletRequest {
 
     /// Metadata for wallets
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<Vec<WalletMetadata>>,
+    pub metadata: Option<Vec<DevWalletMetadata>>,
 
     /// Wallet name/description
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,7 +63,7 @@ pub struct CreateWalletRequest {
 /// Wallet metadata structure
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct WalletMetadata {
+pub struct DevWalletMetadata {
     /// Name or description
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -76,7 +76,7 @@ pub struct WalletMetadata {
 /// Request structure for updating a wallet
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateWalletRequest {
+pub struct UpdateDevWalletRequest {
     /// Wallet name/description
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -89,14 +89,14 @@ pub struct UpdateWalletRequest {
 /// Wallet response structure
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WalletResponse {
-    pub wallet: Wallet,
+pub struct DevWalletResponse {
+    pub wallet: DevWallet,
 }
 
 /// Wallet response structure
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Wallet {
+pub struct DevWallet {
     /// Unique wallet identifier
     pub id: String,
 
@@ -246,8 +246,8 @@ pub struct SignDelegateResponse {
 
 /// Response structure for wallet operations
 #[derive(Debug, Deserialize)]
-pub struct WalletsResponse {
-    pub wallets: Vec<Wallet>,
+pub struct DevWalletsResponse {
+    pub wallets: Vec<DevWallet>,
 }
 
 /// Response structure for sign message
@@ -275,7 +275,7 @@ impl AccountType {
 /// Query parameters for listing wallets
 #[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct ListWalletsParams {
+pub struct ListDevWalletsParams {
     /// Filter by blockchain address
     #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<String>,

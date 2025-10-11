@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{helper::PaginationParams, wallet::dto::ListTransactionsParams};
+use crate::{dev_wallet::dto::ListTransactionsParams, helper::PaginationParams};
 
 pub struct ListTransactionsParamsBuilder {
     params: ListTransactionsParams,

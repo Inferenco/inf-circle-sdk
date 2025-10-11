@@ -1,4 +1,32 @@
 //! Shared helper functions and types used across the SDK
+//!
+//! This module provides common utilities, error types, HTTP client functionality,
+//! and cryptographic helpers used throughout the Circle SDK.
+//!
+//! # Main Components
+//!
+//! - [`CircleError`]: Comprehensive error type for all SDK operations
+//! - [`CircleResult`]: Type alias for `Result<T, CircleError>`
+//! - [`HttpClient`]: Configured HTTP client for Circle API requests
+//! - [`encrypt_entity_secret`]: RSA-OAEP encryption for entity secrets
+//! - Serialization helpers for API compatibility
+//!
+//! # Error Handling
+//!
+//! All SDK operations return `CircleResult<T>` which provides detailed error information:
+//!
+//! ```rust
+//! use inf_circle_sdk::helper::{CircleError, CircleResult};
+//!
+//! fn example_function() -> CircleResult<String> {
+//!     // Environment variable errors
+//!     // HTTP request errors  
+//!     // JSON parsing errors
+//!     // API errors with status codes
+//!     // etc.
+//!     Ok("Success".to_string())
+//! }
+//! ```
 
 use chrono::{DateTime, Utc};
 use near_crypto::PublicKey;
@@ -19,6 +47,20 @@ use sha2::Sha256;
 pub type CircleResult<T> = Result<T, CircleError>;
 
 /// Comprehensive error type for Circle SDK operations
+///
+/// This enum covers all possible errors that can occur when using the Circle SDK,
+/// including environment configuration errors, HTTP request failures, JSON parsing issues,
+/// and API-specific errors with status codes.
+///
+/// # Variants
+///
+/// - `EnvVar`: Missing or invalid environment variables
+/// - `Http`: HTTP request failures (network errors, timeouts, etc.)
+/// - `Json`: JSON serialization/deserialization errors
+/// - `Url`: URL parsing errors
+/// - `Api`: Circle API errors with HTTP status code and message
+/// - `Config`: Invalid SDK configuration
+/// - `Uuid`: UUID parsing or generation errors
 #[derive(Error, Debug)]
 pub enum CircleError {
     #[error("Environment variable error: {0}")]
@@ -109,6 +151,9 @@ pub struct PaginationParams {
 }
 
 /// HTTP client wrapper with common functionality
+///
+/// Handles HTTP requests to the Circle API with automatic header management,
+/// authentication, and response parsing.
 pub struct HttpClient {
     client: Client,
     base_url: Url,

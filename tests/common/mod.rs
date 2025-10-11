@@ -3,12 +3,12 @@
 use inf_circle_sdk::{
     circle_ops::circler_ops::CircleOps,
     circle_view::circle_view::CircleView,
-    types::Blockchain,
-    wallet::{
-        dto::{AccountType, RequestTestnetTokensRequest, Wallet, WalletMetadata},
+    dev_wallet::{
+        dto::{AccountType, DevWallet, DevWalletMetadata, RequestTestnetTokensRequest},
         ops::create_wallet::CreateWalletRequestBuilder,
-        views::{list_wallets::ListWalletsParamsBuilder, query::QueryParamsBuilder},
+        views::{list_wallets::ListDevWalletsParamsBuilder, query::QueryParamsBuilder},
     },
+    types::Blockchain,
     CircleError,
 };
 
@@ -59,7 +59,7 @@ pub async fn get_or_create_test_wallet(
     wallet_set_id: &str,
     blockchain: &Blockchain,
     name_prefix: &str,
-) -> Result<Wallet, Box<dyn std::error::Error>> {
+) -> Result<DevWallet, Box<dyn std::error::Error>> {
     // Use a deterministic ref_id based on blockchain only (ignore name_prefix for max reuse)
     // Exception: destination wallets get their own ref_id
     let deterministic_ref_id = if name_prefix == "Destination" {
@@ -72,7 +72,7 @@ pub async fn get_or_create_test_wallet(
     };
 
     // Try to find an existing wallet by ref_id first
-    let list_params = ListWalletsParamsBuilder::new()
+    let list_params = ListDevWalletsParamsBuilder::new()
         .wallet_set_id(wallet_set_id.to_string())
         .blockchain(blockchain.as_str().to_string())
         .ref_id(deterministic_ref_id.clone())
@@ -98,7 +98,7 @@ pub async fn get_or_create_test_wallet(
             CreateWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])
                 .unwrap()
                 .account_type(AccountType::Eoa)
-                .metadata(vec![WalletMetadata {
+                .metadata(vec![DevWalletMetadata {
                     name: Some(format!("{} Wallet", name_prefix)),
                     ref_id: Some(deterministic_ref_id.clone()), // Use deterministic ref_id
                 }])
@@ -138,7 +138,7 @@ pub async fn get_or_create_destination_wallet(
     view: &CircleView,
     wallet_set_id: &str,
     blockchain: &Blockchain,
-) -> Result<Wallet, Box<dyn std::error::Error>> {
+) -> Result<DevWallet, Box<dyn std::error::Error>> {
     get_or_create_test_wallet(ops, view, wallet_set_id, blockchain, "Destination").await
 }
 
@@ -148,7 +148,7 @@ pub async fn get_or_create_destination_wallet(
 /// requests testnet tokens from the faucet.
 pub async fn ensure_wallet_funded(
     view: &CircleView,
-    wallet: &Wallet,
+    wallet: &DevWallet,
     blockchain: &Blockchain,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Check if this is a testnet blockchain

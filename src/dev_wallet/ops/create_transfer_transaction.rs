@@ -1,5 +1,5 @@
+use crate::dev_wallet::dto::FeeLevel;
 use crate::types::Blockchain;
-use crate::wallet::dto::FeeLevel;
 
 #[derive(Clone, Debug)]
 pub struct CreateTransferTransactionRequestBuilder {

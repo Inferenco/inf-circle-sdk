@@ -1,4 +1,4 @@
-use crate::wallet::dto::{AbiParameter, EstimateContractExecutionFeeBody};
+use crate::dev_wallet::dto::{AbiParameter, EstimateContractExecutionFeeBody};
 
 /// Builder for EstimateContractExecutionFeeBody
 pub struct EstimateContractExecutionFeeBodyBuilder {

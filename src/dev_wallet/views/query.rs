@@ -1,5 +1,5 @@
+use crate::dev_wallet::dto::QueryParams;
 use crate::helper::PaginationParams;
-use crate::wallet::dto::QueryParams;
 
 /// Builder for QueryParams
 pub struct QueryParamsBuilder {

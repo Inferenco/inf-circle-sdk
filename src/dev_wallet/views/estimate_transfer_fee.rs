@@ -1,4 +1,4 @@
-use crate::wallet::dto::EstimateTransferFeeRequest;
+use crate::dev_wallet::dto::EstimateTransferFeeRequest;
 
 /// Builder for EstimateTransferFeeRequest
 pub struct EstimateTransferFeeRequestBuilder {
