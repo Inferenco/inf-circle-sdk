@@ -34,6 +34,7 @@ use near_primitives::action::{base64, delegate::DelegateAction};
 use reqwest::{Client, Method, RequestBuilder, Response};
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
+use std::str::FromStr;
 use thiserror::Error;
 use url::Url;
 
@@ -212,7 +213,6 @@ impl HttpClient {
     {
         let status = response.status();
         let response_text = response.text().await?;
-        println!("Response text: {}", response_text);
 
         if status.is_success() {
             let circle_response: CircleResponse<T> = serde_json::from_str(&response_text)?;
@@ -321,8 +321,6 @@ pub fn serialize_near_delegate_action_to_base64(
 /// - "ed25519:base58..." (NEAR standard)
 /// - "base58..." (Circle API format, assumes ED25519)
 pub fn parse_near_public_key(s: &str) -> Result<near_crypto::PublicKey, String> {
-    use std::str::FromStr;
-
     // Try with prefix first
     if let Ok(pk) = near_crypto::PublicKey::from_str(s) {
         return Ok(pk);

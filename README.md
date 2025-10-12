@@ -35,7 +35,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-inf-circle-sdk = "0.1.0"
+inf-circle-sdk = "0.1.5"
 ```
 
 ## Usage
