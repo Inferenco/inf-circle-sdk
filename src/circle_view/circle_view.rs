@@ -32,6 +32,7 @@ use reqwest::Method;
 use serde::Serialize;
 
 /// CircleView handles read operations (GET) with base URL configuration
+#[derive(Clone)]
 pub struct CircleView {
     client: HttpClient,
 }

@@ -155,6 +155,7 @@ pub struct PaginationParams {
 ///
 /// Handles HTTP requests to the Circle API with automatic header management,
 /// authentication, and response parsing.
+#[derive(Clone)]
 pub struct HttpClient {
     client: Client,
     base_url: Url,

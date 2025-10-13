@@ -34,6 +34,7 @@ use reqwest::Method;
 use serde::Serialize;
 
 /// CircleOps handles write operations (POST, PUT, PATCH) with entity secret authentication
+#[derive(Clone)]
 pub struct CircleOps {
     client: HttpClient,
     entity_secret: String,
