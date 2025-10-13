@@ -35,7 +35,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-inf-circle-sdk = "0.1.6"
+inf-circle-sdk = "0.1.7"
 ```
 
 ## Usage
@@ -66,7 +66,7 @@ CIRCLE_WALLET_SET_ID="YOUR_WALLET_SET_ID"
 ```rust
 use inf_circle_sdk::{
     circle_ops::circler_ops::CircleOps,
-    dev_wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder},
+    dev_wallet::{dto::AccountType, ops::create_dev_wallet::CreateDevWalletRequestBuilder},
     types::Blockchain,
 };
 
@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ops = CircleOps::new()?;
     let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 
-    let builder = CreateWalletRequestBuilder::new(
+    let builder = CreateDevWalletRequestBuilder::new(
         wallet_set_id,
         vec![Blockchain::EthSepolia]
     )?
@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .count(1)
     .build();
 
-    let response = ops.create_wallet(builder).await?;
+    let response = ops.create_dev_wallet(builder).await?;
     println!("Created wallet: {}", response.wallets[0].address);
     Ok(())
 }
@@ -136,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .idempotency_key(Uuid::new_v4().to_string())
         .build();
 
-    let response = ops.create_transfer_transaction(builder).await?;
+    let response = ops.create_dev_transfer_transaction(builder).await?;
     println!("Transaction ID: {}", response.id);
     Ok(())
 }

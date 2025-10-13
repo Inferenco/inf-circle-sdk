@@ -5,7 +5,7 @@ use inf_circle_sdk::{
     circle_view::circle_view::CircleView,
     dev_wallet::{
         dto::{AccountType, DevWallet, DevWalletMetadata, RequestTestnetTokensRequest},
-        ops::create_wallet::CreateWalletRequestBuilder,
+        ops::create_dev_wallet::CreateDevWalletRequestBuilder,
         views::{list_wallets::ListDevWalletsParamsBuilder, query::QueryParamsBuilder},
     },
     types::Blockchain,
@@ -95,7 +95,7 @@ pub async fn get_or_create_test_wallet(
 
     loop {
         let create_request_builder =
-            CreateWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])
+            CreateDevWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])
                 .unwrap()
                 .account_type(AccountType::Eoa)
                 .metadata(vec![DevWalletMetadata {
@@ -104,7 +104,7 @@ pub async fn get_or_create_test_wallet(
                 }])
                 .build();
 
-        match ops.create_wallet(create_request_builder).await {
+        match ops.create_dev_wallet(create_request_builder).await {
             Ok(create_response) => {
                 if let Some(wallet) = create_response.wallets.into_iter().next() {
                     println!(

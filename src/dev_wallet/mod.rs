@@ -21,7 +21,7 @@
 //! ```rust,no_run
 //! use inf_circle_sdk::{
 //!     circle_ops::circler_ops::CircleOps,
-//!     dev_wallet::ops::create_wallet::CreateWalletRequestBuilder,
+//!     dev_wallet::ops::create_dev_wallet::CreateDevWalletRequestBuilder,
 //!     dev_wallet::dto::AccountType,
 //!     types::Blockchain,
 //! };
@@ -30,7 +30,7 @@
 //! let ops = CircleOps::new()?;
 //! let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 //!
-//! let builder = CreateWalletRequestBuilder::new(
+//! let builder = CreateDevWalletRequestBuilder::new(
 //!     wallet_set_id,
 //!     vec![Blockchain::EthSepolia]
 //! )?
@@ -38,7 +38,7 @@
 //! .count(1)
 //! .build();
 //!
-//! let response = ops.create_wallet(builder).await?;
+//! let response = ops.create_dev_wallet(builder).await?;
 //! # Ok(())
 //! # }
 //! ```

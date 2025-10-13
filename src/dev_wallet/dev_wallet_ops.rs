@@ -18,8 +18,8 @@ use crate::{
             accelerate_transaction::AccelerateTransactionRequestBuilder,
             cancel_transaction::CancelTransactionRequestBuilder,
             create_contract_transaction::CreateContractExecutionTransactionRequestBuilder,
+            create_dev_wallet::CreateDevWalletRequestBuilder,
             create_transfer_transaction::CreateTransferTransactionRequestBuilder,
-            create_wallet::CreateWalletRequestBuilder,
             create_wallet_upgrade_transaction::CreateWalletUpgradeTransactionRequestBuilder,
             sign_data::SignDataRequestBuilder, sign_delegate::SignDelegateRequestBuilder,
             sign_message::SignMessageRequestBuilder,
@@ -38,7 +38,7 @@ impl CircleOps {
     ///
     /// # Arguments
     ///
-    /// * `builder` - A `CreateWalletRequestBuilder` configured with wallet parameters
+    /// * `builder` - A `CreateDevWalletRequestBuilder` configured with wallet parameters
     ///
     /// # Returns
     ///
@@ -48,7 +48,7 @@ impl CircleOps {
     ///
     /// ```rust,no_run
     /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
-    /// use inf_circle_sdk::dev_wallet::ops::create_wallet::CreateWalletRequestBuilder;
+    /// use inf_circle_sdk::dev_wallet::ops::create_dev_wallet::CreateDevWalletRequestBuilder;
     /// use inf_circle_sdk::dev_wallet::dto::AccountType;
     /// use inf_circle_sdk::types::Blockchain;
     ///
@@ -57,7 +57,7 @@ impl CircleOps {
     /// let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
     ///
     /// // Create a single SCA wallet on Ethereum Sepolia
-    /// let builder = CreateWalletRequestBuilder::new(
+    /// let builder = CreateDevWalletRequestBuilder::new(
     ///     wallet_set_id,
     ///     vec![Blockchain::EthSepolia]
     /// )?
@@ -66,14 +66,14 @@ impl CircleOps {
     /// .name("My Wallet".to_string())
     /// .build();
     ///
-    /// let response = ops.create_wallet(builder).await?;
+    /// let response = ops.create_dev_wallet(builder).await?;
     /// println!("Created wallet: {}", response.wallets[0].address);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create_wallet(
+    pub async fn create_dev_wallet(
         &self,
-        builder: CreateWalletRequestBuilder,
+        builder: CreateDevWalletRequestBuilder,
     ) -> CircleResult<DevWalletsResponse> {
         // Encrypt the entity secret (fresh encryption for each request)
         let entity_secret_ciphertext = self.entity_secret()?;
@@ -99,7 +99,7 @@ impl CircleOps {
     /// Update a wallet
     ///
     /// Updates wallet metadata such as name and reference ID
-    pub async fn update_wallet(
+    pub async fn update_dev_wallet(
         &self,
         wallet_id: &str,
         request: UpdateDevWalletRequest,
@@ -133,12 +133,12 @@ impl CircleOps {
     /// .encoded_by_hex(false)
     /// .build();
     ///
-    /// let response = ops.sign_message(builder).await?;
+    /// let response = ops.dev_sign_message(builder).await?;
     /// println!("Signature: {}", response.signature);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn sign_message(
+    pub async fn dev_sign_message(
         &self,
         builder: SignMessageRequestBuilder,
     ) -> CircleResult<SignatureResponse> {
@@ -191,12 +191,12 @@ impl CircleOps {
     /// )?
     /// .build();
     ///
-    /// let response = ops.sign_data(builder).await?;
+    /// let response = ops.dev_sign_data(builder).await?;
     /// println!("Signature: {}", response.signature);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn sign_data(
+    pub async fn dev_sign_data(
         &self,
         builder: SignDataRequestBuilder,
     ) -> CircleResult<SignatureResponse> {
@@ -244,12 +244,12 @@ impl CircleOps {
     /// )?
     /// .build();
     ///
-    /// let response = ops.sign_transaction(builder).await?;
+    /// let response = ops.dev_sign_transaction(builder).await?;
     /// println!("Signed transaction: {}", response.signature);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn sign_transaction(
+    pub async fn dev_sign_transaction(
         &self,
         builder: SignTransactionRequestBuilder,
     ) -> CircleResult<SignTransactionResponse> {
@@ -299,12 +299,12 @@ impl CircleOps {
     /// )?
     /// .build();
     ///
-    /// let response = ops.sign_delegate(builder).await?;
+    /// let response = ops.dev_sign_delegate(builder).await?;
     /// println!("Signed delegate action");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn sign_delegate(
+    pub async fn dev_sign_delegate(
         &self,
         builder: SignDelegateRequestBuilder,
     ) -> CircleResult<SignDelegateResponse> {
@@ -353,7 +353,7 @@ impl CircleOps {
     ///     .idempotency_key(Uuid::new_v4().to_string())
     ///     .build();
     ///
-    /// let response = ops.create_transfer_transaction(builder).await?;
+    /// let response = ops.create_dev_transfer_transaction(builder).await?;
     /// println!("Transaction ID: {}", response.id);
     /// # Ok(())
     /// # }
@@ -378,11 +378,11 @@ impl CircleOps {
     ///     .idempotency_key(Uuid::new_v4().to_string())
     ///     .build();
     ///
-    /// let response = ops.create_transfer_transaction(builder).await?;
+    /// let response = ops.create_dev_transfer_transaction(builder).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create_transfer_transaction(
+    pub async fn create_dev_transfer_transaction(
         &self,
         builder: CreateTransferTransactionRequestBuilder,
     ) -> CircleResult<CreateTransferTransactionResponse> {
@@ -413,7 +413,7 @@ impl CircleOps {
     /// Query a contract
     ///
     /// Execute a query function on a contract by providing the address and blockchain
-    pub async fn query_contract(
+    pub async fn dev_query_contract(
         &self,
         request: QueryContractRequest,
     ) -> CircleResult<QueryContractResponse> {
@@ -459,12 +459,12 @@ impl CircleOps {
     /// .fee_level(FeeLevel::Medium)
     /// .build();
     ///
-    /// let response = ops.create_contract_execution_transaction(builder).await?;
+    /// let response = ops.create_dev_contract_execution_transaction(builder).await?;
     /// println!("Transaction ID: {}", response.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create_contract_execution_transaction(
+    pub async fn create_dev_contract_execution_transaction(
         &self,
         builder: CreateContractExecutionTransactionRequestBuilder,
     ) -> CircleResult<CreateContractExecutionTransactionResponse> {
@@ -494,7 +494,7 @@ impl CircleOps {
     /// Create a wallet upgrade transaction
     ///
     /// Creates a transaction which upgrades a wallet to a new SCA core version
-    pub async fn create_wallet_upgrade_transaction(
+    pub async fn create_dev_wallet_upgrade_transaction(
         &self,
         builder: CreateWalletUpgradeTransactionRequestBuilder,
     ) -> CircleResult<CreateWalletUpgradeTransactionResponse> {
@@ -547,7 +547,7 @@ impl CircleOps {
     /// )
     /// .build();
     ///
-    /// let response = ops.cancel_transaction(builder).await?;
+    /// let response = ops.cancel_dev_transaction(builder).await?;
     /// println!("Cancellation transaction ID: {}", response.id);
     /// # Ok(())
     /// # }
@@ -556,7 +556,7 @@ impl CircleOps {
     /// # Note
     ///
     /// Only pending transactions can be cancelled. Confirmed transactions cannot be reversed.
-    pub async fn cancel_transaction(
+    pub async fn cancel_dev_transaction(
         &self,
         builder: CancelTransactionRequestBuilder,
     ) -> CircleResult<CancelTransactionResponse> {
@@ -604,7 +604,7 @@ impl CircleOps {
     /// )
     /// .build();
     ///
-    /// let response = ops.accelerate_transaction(builder).await?;
+    /// let response = ops.accelerate_dev_transaction(builder).await?;
     /// println!("Accelerated transaction ID: {}", response.id);
     /// # Ok(())
     /// # }
@@ -613,7 +613,7 @@ impl CircleOps {
     /// # Note
     ///
     /// Only pending transactions can be accelerated. Confirmed transactions cannot be modified.
-    pub async fn accelerate_transaction(
+    pub async fn accelerate_dev_transaction(
         &self,
         builder: AccelerateTransactionRequestBuilder,
     ) -> CircleResult<AccelerateTransactionResponse> {
@@ -635,14 +635,14 @@ impl CircleOps {
 #[cfg(test)]
 mod tests {
     use crate::{
-        dev_wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder},
+        dev_wallet::{dto::AccountType, ops::create_dev_wallet::CreateDevWalletRequestBuilder},
         types::Blockchain,
     };
 
     #[test]
     fn test_builder_pattern() {
         // Test that the builder pattern works correctly
-        let builder = CreateWalletRequestBuilder::new(
+        let builder = CreateDevWalletRequestBuilder::new(
             "test-wallet-set-id".to_string(),
             vec![Blockchain::EthSepolia],
         )
@@ -663,7 +663,7 @@ mod tests {
     fn test_builder_with_custom_idempotency_key() {
         // Test that custom idempotency keys are preserved in the builder
         let custom_key = "custom-test-key-123";
-        let builder = CreateWalletRequestBuilder::new(
+        let builder = CreateDevWalletRequestBuilder::new(
             "test-wallet-set-id".to_string(),
             vec![Blockchain::EthSepolia],
         )

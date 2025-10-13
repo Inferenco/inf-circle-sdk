@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .build();
 
     match ops
-        .create_contract_execution_transaction(execute_builder)
+        .create_dev_contract_execution_transaction(execute_builder)
         .await
     {
         Ok(response) => {

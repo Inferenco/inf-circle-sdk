@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .build();
 
-        match ops.accelerate_transaction(accelerate_builder).await {
+        match ops.accelerate_dev_transaction(accelerate_builder).await {
             Ok(response) => {
                 println!("   ✅ Transaction accelerated!");
                 println!("      New Transaction ID: {}", response.id);
@@ -106,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             CancelTransactionRequestBuilder::new(pending_tx.id.clone(), Uuid::new_v4().to_string())
                 .build();
 
-        match ops.cancel_transaction(cancel_builder).await {
+        match ops.cancel_dev_transaction(cancel_builder).await {
             Ok(response) => {
                 println!("   ✅ Cancellation transaction created!");
                 println!("      Cancellation TX ID: {}", response.id);
@@ -133,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .ref_id("slow-transfer-for-demo".to_string())
                 .build();
 
-        match ops.create_transfer_transaction(transfer_builder).await {
+        match ops.create_dev_transfer_transaction(transfer_builder).await {
             Ok(response) => {
                 let tx_id = response.id.clone();
                 println!("   ✅ Created slow transaction: {}", tx_id);

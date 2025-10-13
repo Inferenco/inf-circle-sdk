@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .memo("Example message signature".to_string())
         .build();
 
-    match ops.sign_message(sign_builder).await {
+    match ops.dev_sign_message(sign_builder).await {
         Ok(response) => {
             println!("   ✅ Message signed successfully!");
             println!("   Signature: {}", response.signature);
@@ -104,7 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .memo("Example EIP-712 signature".to_string())
             .build();
 
-    match ops.sign_data(typed_data_builder).await {
+    match ops.dev_sign_data(typed_data_builder).await {
         Ok(response) => {
             println!("   ✅ Typed data signed successfully!");
             println!("   Signature: {}", response.signature);

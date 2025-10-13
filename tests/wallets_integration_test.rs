@@ -17,8 +17,8 @@ use inf_circle_sdk::{
             accelerate_transaction::AccelerateTransactionRequestBuilder,
             cancel_transaction::CancelTransactionRequestBuilder,
             create_contract_transaction::CreateContractExecutionTransactionRequestBuilder,
+            create_dev_wallet::CreateDevWalletRequestBuilder,
             create_transfer_transaction::CreateTransferTransactionRequestBuilder,
-            create_wallet::CreateWalletRequestBuilder,
             create_wallet_upgrade_transaction::CreateWalletUpgradeTransactionRequestBuilder,
             sign_data::SignDataRequestBuilder, sign_delegate::SignDelegateRequestBuilder,
             sign_message::SignMessageRequestBuilder,
@@ -78,7 +78,7 @@ async fn get_or_create_sca_wallet(
 
     // Create new SCA wallet
     let create_request =
-        CreateWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])?
+        CreateDevWalletRequestBuilder::new(wallet_set_id.to_string(), vec![blockchain.clone()])?
             .account_type(AccountType::Sca)
             .metadata(vec![DevWalletMetadata {
                 name: Some(format!("Test SCA Wallet - {}", blockchain.as_str())),
@@ -86,7 +86,7 @@ async fn get_or_create_sca_wallet(
             }])
             .build();
 
-    let wallets_response = ops.create_wallet(create_request).await?;
+    let wallets_response = ops.create_dev_wallet(create_request).await?;
 
     let wallet = wallets_response
         .wallets
@@ -318,7 +318,7 @@ async fn test_wallet_lifecycle() {
     // 1. Create a new wallet
     // The entity secret will be automatically encrypted at request time using CIRCLE_ENTITY_SECRET and CIRCLE_PUBLIC_KEY
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id.clone(), vec![Blockchain::EthSepolia])
+        CreateDevWalletRequestBuilder::new(wallet_set_id.clone(), vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -328,7 +328,7 @@ async fn test_wallet_lifecycle() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
         .expect("Failed to create wallet");
     let new_wallet = create_response.wallets.first().expect("No wallet created");
@@ -352,7 +352,7 @@ async fn test_wallet_lifecycle() {
     };
 
     let updated_wallet = ops
-        .update_wallet(&new_wallet.id, update_request)
+        .update_dev_wallet(&new_wallet.id, update_request)
         .await
         .expect("Failed to update wallet");
     assert_eq!(
@@ -438,7 +438,7 @@ async fn test_get_token_balances() {
 
     // Create a test wallet first
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
+        CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -448,7 +448,7 @@ async fn test_get_token_balances() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
         .expect("Failed to create wallet");
     let test_wallet = create_response.wallets.first().expect("No wallet created");
@@ -502,7 +502,7 @@ async fn test_get_nfts() {
 
     // Create a test wallet first
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
+        CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -512,9 +512,9 @@ async fn test_get_nfts() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
-        .expect("Failed to create wallet");
+        .expect("Failed to create dev wallet");
     let test_wallet = create_response.wallets.first().expect("No wallet created");
 
     // Test getting NFTs without parameters
@@ -607,7 +607,7 @@ async fn test_sign_message() {
             .build();
 
     let sign_response = ops
-        .sign_message(sign_request_builder)
+        .dev_sign_message(sign_request_builder)
         .await
         .expect("Failed to sign message");
 
@@ -627,7 +627,7 @@ async fn test_sign_message() {
             .build();
 
     let hex_sign_response = ops
-        .sign_message(hex_sign_request_builder)
+        .dev_sign_message(hex_sign_request_builder)
         .await
         .expect("Failed to sign hex message");
 
@@ -651,7 +651,7 @@ async fn test_sign_data() {
 
     // Create a test wallet first
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
+        CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -661,7 +661,7 @@ async fn test_sign_data() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
         .expect("Failed to create wallet");
     let test_wallet = create_response.wallets.first().expect("No wallet created");
@@ -701,7 +701,7 @@ async fn test_sign_data() {
             .memo("Test data signing".to_string())
             .build();
 
-    let sign_response = ops.sign_data(sign_request_builder).await;
+    let sign_response = ops.dev_sign_data(sign_request_builder).await;
 
     // Handle the case where sign_data endpoint might not be available
     match sign_response {
@@ -737,7 +737,7 @@ async fn test_sign_transaction() {
 
     // Create a test wallet first - use NEAR-TESTNET for transaction signing (supported testnet)
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EvmTestnet])
+        CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EvmTestnet])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -747,7 +747,7 @@ async fn test_sign_transaction() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
         .expect("Failed to create wallet");
     let test_wallet = create_response.wallets.first().expect("No wallet created");
@@ -773,7 +773,7 @@ async fn test_sign_transaction() {
     .memo("Test transaction signing".to_string())
     .build();
 
-    let sign_response = ops.sign_transaction(sign_request_builder).await;
+    let sign_response = ops.dev_sign_transaction(sign_request_builder).await;
 
     // Handle the case where transaction signing might fail
     match sign_response {
@@ -817,7 +817,7 @@ async fn test_sign_delegate_near() {
 
     // Create a NEAR test wallet (delegate signing only works with NEAR)
     let create_request_builder =
-        CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::NearTestnet])
+        CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::NearTestnet])
             .unwrap()
             .account_type(AccountType::Eoa)
             .metadata(vec![DevWalletMetadata {
@@ -827,7 +827,7 @@ async fn test_sign_delegate_near() {
             .build();
 
     let create_response = ops
-        .create_wallet(create_request_builder)
+        .create_dev_wallet(create_request_builder)
         .await
         .expect("Failed to create NEAR wallet");
     let test_wallet = create_response
@@ -902,7 +902,7 @@ async fn test_sign_delegate_near() {
             .unwrap()
             .build();
 
-    let sign_response = ops.sign_delegate(sign_request_builder).await;
+    let sign_response = ops.dev_sign_delegate(sign_request_builder).await;
 
     // Test passes if we can create the request and handle the response
     match sign_response {
@@ -964,7 +964,7 @@ async fn test_sign_delegate_non_near_should_fail() {
             .build();
 
     // This should fail because delegate signing only works with NEAR
-    let result = ops.sign_delegate(sign_request_builder).await;
+    let result = ops.dev_sign_delegate(sign_request_builder).await;
     assert!(
         result.is_err(),
         "Delegate signing should fail for non-NEAR blockchains"
@@ -1136,7 +1136,7 @@ async fn test_get_transaction() {
         .build();
 
     let transfer_response = ops
-        .create_transfer_transaction(transfer_builder)
+        .create_dev_transfer_transaction(transfer_builder)
         .await
         .expect("Failed to create transfer transaction");
 
@@ -1277,7 +1277,7 @@ async fn test_create_transfer_transaction_with_fee_level() {
         .build();
 
     let response = ops
-        .create_transfer_transaction(transfer_builder)
+        .create_dev_transfer_transaction(transfer_builder)
         .await
         .expect("Failed to create transfer transaction");
 
@@ -1362,7 +1362,7 @@ async fn test_create_transfer_transaction_with_gas_settings() {
             .ref_id("test-transfer-gas-settings".to_string())
             .build();
 
-        ops.create_transfer_transaction(transfer_builder).await
+        ops.create_dev_transfer_transaction(transfer_builder).await
     })
     .await
     .expect("Failed to create transfer transaction with gas settings");
@@ -1436,7 +1436,7 @@ async fn test_create_token_transfer_transaction() {
 
         loop {
             match ops
-                .create_transfer_transaction(transfer_builder.clone())
+                .create_dev_transfer_transaction(transfer_builder.clone())
                 .await
             {
                 Ok(response) => break response,
@@ -1524,7 +1524,7 @@ async fn test_create_transfer_transaction_all_fee_levels() {
                 .ref_id(format!("test-transfer-{}", level_name_str.to_lowercase()))
                 .build();
 
-            ops.create_transfer_transaction(transfer_builder).await
+            ops.create_dev_transfer_transaction(transfer_builder).await
         })
         .await
         .expect(&format!(
@@ -1692,7 +1692,7 @@ async fn test_query_contract() {
     };
 
     let response = ops
-        .query_contract(request)
+        .dev_query_contract(request)
         .await
         .expect("Failed to query contract");
 
@@ -1752,7 +1752,7 @@ async fn test_create_contract_execution_transaction() {
     .build();
 
     let response = ops
-        .create_contract_execution_transaction(builder)
+        .create_dev_contract_execution_transaction(builder)
         .await
         .expect("Failed to create contract execution transaction");
 
@@ -1798,7 +1798,7 @@ async fn test_create_wallet_upgrade_transaction() {
     .build();
 
     let response = ops
-        .create_wallet_upgrade_transaction(builder)
+        .create_dev_wallet_upgrade_transaction(builder)
         .await
         .expect("Failed to create wallet upgrade transaction");
 
@@ -1853,7 +1853,7 @@ async fn test_cancel_transaction() {
             .ref_id("test-transfer-for-cancel".to_string())
             .build();
 
-        ops.create_transfer_transaction(transfer_builder).await
+        ops.create_dev_transfer_transaction(transfer_builder).await
     })
     .await
     .expect("Failed to create transfer transaction");
@@ -1873,7 +1873,7 @@ async fn test_cancel_transaction() {
     )
     .build();
 
-    match ops.cancel_transaction(cancel_builder).await {
+    match ops.cancel_dev_transaction(cancel_builder).await {
         Ok(response) => {
             println!("✅ Transaction canceled!");
             println!("Transaction ID: {}", response.id);
@@ -1930,7 +1930,7 @@ async fn test_accelerate_transaction() {
             .ref_id("test-transfer-for-accelerate".to_string())
             .build();
 
-        ops.create_transfer_transaction(transfer_builder).await
+        ops.create_dev_transfer_transaction(transfer_builder).await
     })
     .await
     .expect("Failed to create transfer transaction");
@@ -1950,7 +1950,7 @@ async fn test_accelerate_transaction() {
     )
     .build();
 
-    match ops.accelerate_transaction(accelerate_builder).await {
+    match ops.accelerate_dev_transaction(accelerate_builder).await {
         Ok(response) => {
             println!("✅ Transaction accelerated!");
             println!("Transaction ID: {}", response.id);

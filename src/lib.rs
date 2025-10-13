@@ -46,7 +46,7 @@
 //! ```rust,no_run
 //! use inf_circle_sdk::{
 //!     circle_ops::circler_ops::CircleOps,
-//!     dev_wallet::{dto::AccountType, ops::create_wallet::CreateWalletRequestBuilder},
+//!     dev_wallet::{dto::AccountType, ops::create_dev_wallet::CreateDevWalletRequestBuilder},
 //!     types::Blockchain,
 //! };
 //!
@@ -55,7 +55,7 @@
 //!     let ops = CircleOps::new()?;
 //!     let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 //!
-//!     let builder = CreateWalletRequestBuilder::new(
+//!     let builder = CreateDevWalletRequestBuilder::new(
 //!         wallet_set_id,
 //!         vec![Blockchain::EthSepolia]
 //!     )?
@@ -63,7 +63,7 @@
 //!     .count(1)
 //!     .build();
 //!
-//!     let response = ops.create_wallet(builder).await?;
+//!     let response = ops.create_dev_wallet(builder).await?;
 //!     println!("Created wallet: {}", response.wallets[0].address);
 //!     Ok(())
 //! }
@@ -116,7 +116,7 @@
 //!         .idempotency_key(Uuid::new_v4().to_string())
 //!         .build();
 //!
-//!     let response = ops.create_transfer_transaction(builder).await?;
+//!     let response = ops.create_dev_transfer_transaction(builder).await?;
 //!     println!("Transaction ID: {}", response.id);
 //!     Ok(())
 //! }
@@ -154,14 +154,14 @@
 //!
 //! ```rust,no_run
 //! # use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
-//! # use inf_circle_sdk::dev_wallet::ops::create_wallet::CreateWalletRequestBuilder;
+//! # use inf_circle_sdk::dev_wallet::ops::create_dev_wallet::CreateDevWalletRequestBuilder;
 //! # use inf_circle_sdk::dev_wallet::dto::AccountType;
 //! # use inf_circle_sdk::types::Blockchain;
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! # let ops = CircleOps::new()?;
 //! # let wallet_set_id = "test".to_string();
-//! # let builder = CreateWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])?.build();
-//! match ops.create_wallet(builder).await {
+//! # let builder = CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])?.build();
+//! match ops.create_dev_wallet(builder).await {
 //!     Ok(response) => println!("Success!"),
 //!     Err(e) => eprintln!("Error: {}", e),  // Detailed error message
 //! }

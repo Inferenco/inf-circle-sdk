@@ -53,15 +53,15 @@ This document summarizes the comprehensive Rust documentation and examples added
 ### 2. Method-Level Documentation
 
 #### Wallet Operations (`src/dev_wallet/dev_wallet_ops.rs`)
-- ✅ `create_wallet()` - With comprehensive example
-- ✅ `sign_message()` - With message signing example
-- ✅ `sign_data()` - With EIP-712 typed data example
-- ✅ `sign_transaction()` - With raw transaction signing example
-- ✅ `sign_delegate()` - With NEAR Protocol delegate action example
-- ✅ `create_transfer_transaction()` - With native token AND ERC-20 examples
-- ✅ `create_contract_execution_transaction()` - With ERC-20 approve example
-- ✅ `cancel_transaction()` - With cancellation example and notes
-- ✅ `accelerate_transaction()` - With acceleration example and notes
+- ✅ `create_dev_wallet()` - With comprehensive example
+- ✅ `dev_sign_message()` - With message signing example
+- ✅ `dev_sign_data()` - With EIP-712 typed data example
+- ✅ `dev_sign_transaction()` - With raw transaction signing example
+- ✅ `dev_sign_delegate()` - With NEAR Protocol delegate action example
+- ✅ `create_dev_transfer_transaction()` - With native token AND ERC-20 examples
+- ✅ `create_dev_contract_execution_transaction()` - With ERC-20 approve example
+- ✅ `cancel_dev_transaction()` - With cancellation example and notes
+- ✅ `accelerate_dev_transaction()` - With acceleration example and notes
 
 #### Wallet Views (`src/dev_wallet/dev_wallet_view.rs`)
 - ✅ `list_wallets()` - With filtering example

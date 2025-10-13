@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ref_id("example-eth-transfer".to_string())
         .build();
 
-    match ops.create_transfer_transaction(transfer_builder).await {
+    match ops.create_dev_transfer_transaction(transfer_builder).await {
         Ok(response) => {
             println!("✅ Native token transfer created!");
             println!("   Transaction ID: {}", response.id);
@@ -110,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ref_id("example-usdc-transfer".to_string())
         .build();
 
-    match ops.create_transfer_transaction(erc20_transfer).await {
+    match ops.create_dev_transfer_transaction(erc20_transfer).await {
         Ok(response) => {
             println!("✅ ERC-20 token transfer created!");
             println!("   Transaction ID: {}", response.id);
