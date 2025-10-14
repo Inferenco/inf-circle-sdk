@@ -245,13 +245,13 @@ pub struct SignDelegateResponse {
 }
 
 /// Response structure for wallet operations
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct DevWalletsResponse {
     pub wallets: Vec<DevWallet>,
 }
 
 /// Response structure for sign message
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SignatureResponse {
     /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
     pub signature: String,

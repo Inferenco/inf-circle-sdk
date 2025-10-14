@@ -251,7 +251,7 @@ pub struct Contract {
 }
 
 /// Template contract deployment response
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateContractDeploymentResponse {
     /// Unique identifiers of the created smart contracts
@@ -262,7 +262,7 @@ pub struct TemplateContractDeploymentResponse {
 }
 
 /// Response from deploying a contract from bytecode
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContractDeploymentResponse {
     /// Unique identifier of the created smart contract
@@ -273,7 +273,7 @@ pub struct ContractDeploymentResponse {
 }
 
 /// Response from querying a contract
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryContractResponse {
     /// Output values from the contract query
@@ -344,7 +344,7 @@ pub struct DeployContractRequest {
 }
 
 /// Contract import/single deployment response
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContractResponse {
     /// Imported or deployed contract
@@ -352,7 +352,7 @@ pub struct ContractResponse {
 }
 
 /// Response structure for listing contracts
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ContractsResponse {
     pub contracts: Vec<Contract>,
 }
@@ -629,7 +629,7 @@ pub struct UpdateNotificationSubscriptionBody {
 pub type UpdateNotificationSubscriptionResponse = NotificationSubscription;
 
 /// Response structure for getting health of Circle API
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PingResponse {
     /// Message
     pub message: String,
@@ -684,7 +684,7 @@ pub struct CreateEventMonitorRequest {
 }
 
 /// Response structure for creating an event monitor
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventMonitorResponse {
     /// The created event monitor
@@ -700,7 +700,7 @@ pub struct UpdateEventMonitorRequest {
 }
 
 /// Response structure for listing event monitors
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventMonitorsResponse {
     /// List of event monitors that match criteria
@@ -781,7 +781,7 @@ pub struct EventLog {
 }
 
 /// Response structure for listing event logs
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventLogsResponse {
     /// List of event logs generated from monitored contract events
