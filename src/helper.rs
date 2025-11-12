@@ -308,12 +308,25 @@ pub fn encrypt_entity_secret(
 
 /// Serialize a NEAR DelegateAction to base64 for Circle API
 ///
-/// This uses NEAR's official types and Borsh serialization
+/// This uses NEAR's official types and Borsh serialization.
+/// According to NEP-461, delegate actions must be prefixed with
+/// 2^30 + 461 = 1073742285 (0x400001CD) as a 4-byte little-endian u32.
 pub fn serialize_near_delegate_action_to_base64(
     delegate_action: &DelegateAction,
 ) -> std::io::Result<String> {
+    // Serialize the delegate action to Borsh bytes
     let borsh_bytes = borsh::to_vec(delegate_action)?;
-    Ok(base64(&borsh_bytes))
+
+    // NEP-461 prefix for actionable messages (on-chain): 2^30 + 461 = 1073742285
+    // This is encoded as a 4-byte little-endian u32
+    const NEP_461_PREFIX: u32 = 0x40000000 + 461; // 1073741824 + 461 = 1073742285
+
+    // Prepend the prefix to the serialized bytes
+    let mut prefixed_bytes = Vec::with_capacity(4 + borsh_bytes.len());
+    prefixed_bytes.extend_from_slice(&NEP_461_PREFIX.to_le_bytes());
+    prefixed_bytes.extend_from_slice(&borsh_bytes);
+
+    Ok(base64(&prefixed_bytes))
 }
 
 /// Parse a NEAR public key from various formats

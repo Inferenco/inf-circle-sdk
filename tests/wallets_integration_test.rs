@@ -804,7 +804,6 @@ async fn test_sign_transaction() {
 }
 
 #[tokio::test]
-#[ignore]
 async fn test_sign_delegate_near() {
     // Load environment variables from .env file
     dotenv::dotenv().ok();
