@@ -178,6 +178,7 @@ pub mod circle_view;
 pub mod contract;
 pub mod dev_wallet;
 pub mod helper;
+pub mod near;
 pub mod types;
 
 // Re-export main types for convenience

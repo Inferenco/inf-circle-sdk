@@ -789,7 +789,7 @@ pub struct EventLogsResponse {
 }
 
 /// Query parameters for listing event logs
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ListEventLogsParams {
     /// Filter contracts by address

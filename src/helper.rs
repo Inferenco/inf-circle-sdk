@@ -29,12 +29,9 @@
 //! ```
 
 use chrono::{DateTime, Utc};
-use near_crypto::PublicKey;
-use near_primitives::action::{base64, delegate::DelegateAction};
 use reqwest::{Client, Method, RequestBuilder, Response};
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
-use std::str::FromStr;
 use thiserror::Error;
 use url::Url;
 
@@ -135,7 +132,7 @@ where
 }
 
 /// Common query parameters for pagination
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct PaginationParams {
     #[serde(rename = "pageAfter", skip_serializing_if = "Option::is_none")]
     pub page_after: Option<String>,
@@ -300,49 +297,6 @@ pub fn encrypt_entity_secret(
     let base64_encoded = general_purpose::STANDARD.encode(&encrypted_data);
 
     Ok(base64_encoded)
-}
-
-// ============================================================================
-// NEAR Protocol Helper Functions
-// ============================================================================
-
-/// Serialize a NEAR DelegateAction to base64 for Circle API
-///
-/// This uses NEAR's official types and Borsh serialization.
-/// According to NEP-461, delegate actions must be prefixed with
-/// 2^30 + 461 = 1073742285 (0x400001CD) as a 4-byte little-endian u32.
-pub fn serialize_near_delegate_action_to_base64(
-    delegate_action: &DelegateAction,
-) -> std::io::Result<String> {
-    // Serialize the delegate action to Borsh bytes
-    let borsh_bytes = borsh::to_vec(delegate_action)?;
-
-    // NEP-461 prefix for actionable messages (on-chain): 2^30 + 461 = 1073742285
-    // This is encoded as a 4-byte little-endian u32
-    const NEP_461_PREFIX: u32 = 0x40000000 + 461; // 1073741824 + 461 = 1073742285
-
-    // Prepend the prefix to the serialized bytes
-    let mut prefixed_bytes = Vec::with_capacity(4 + borsh_bytes.len());
-    prefixed_bytes.extend_from_slice(&NEP_461_PREFIX.to_le_bytes());
-    prefixed_bytes.extend_from_slice(&borsh_bytes);
-
-    Ok(base64(&prefixed_bytes))
-}
-
-/// Parse a NEAR public key from various formats
-///
-/// Supports:
-/// - "ed25519:base58..." (NEAR standard)
-/// - "base58..." (Circle API format, assumes ED25519)
-pub fn parse_near_public_key(s: &str) -> Result<near_crypto::PublicKey, String> {
-    // Try with prefix first
-    if let Ok(pk) = near_crypto::PublicKey::from_str(s) {
-        return Ok(pk);
-    }
-
-    // Try adding ed25519: prefix (Circle format)
-    let with_prefix = format!("ed25519:{}", s);
-    PublicKey::from_str(&with_prefix).map_err(|e| format!("Failed to parse NEAR public key: {}", e))
 }
 
 #[cfg(test)]

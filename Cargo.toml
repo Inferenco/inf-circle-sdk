@@ -1,6 +1,6 @@
 [package]
 name = "inf-circle-sdk"
-version = "0.1.8"
+version = "0.2.0"
 edition = "2021"
 authors = ["Spielcrypto <fjnavarro@spielcrypto.com>"]
 description = "Rust SDK for Circle's API with clean separation of read and write operations"
@@ -59,9 +59,10 @@ borsh = { version = "1", features = ["derive"] }
 bs58 = "0.5"
 
 # NEAR official types (ensures correct serialization)
-near-primitives = "0.32.0"
-near-crypto = "0.32.0"
-
+near-primitives = "0.33.0"
+near-crypto = "0.33.0"
+near-jsonrpc-client = "0.19.0"
+near-jsonrpc-primitives = "0.33.0"
 
 [dev-dependencies]
 tokio-test = "0.4"

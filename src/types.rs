@@ -33,6 +33,7 @@ use serde::{Deserialize, Serialize};
 /// - `BaseSepolia` - Base Sepolia testnet
 /// - `OpSepolia` - Optimism Sepolia testnet
 /// - `AptosTestnet` - Aptos testnet
+/// - `ArcTestnet` - Arc testnet
 ///
 /// # Example
 ///
@@ -88,6 +89,8 @@ pub enum Blockchain {
     Aptos,
     #[serde(rename = "APTOS-TESTNET")]
     AptosTestnet,
+    #[serde(rename = "ARC-TESTNET")]
+    ArcTestnet,
 }
 
 impl Blockchain {
@@ -115,6 +118,7 @@ impl Blockchain {
             Blockchain::OpSepolia => "OP-SEPOLIA",
             Blockchain::Aptos => "APTOS",
             Blockchain::AptosTestnet => "APTOS-TESTNET",
+            Blockchain::ArcTestnet => "ARC-TESTNET",
         }
     }
 }
