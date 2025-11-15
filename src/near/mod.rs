@@ -49,12 +49,42 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! # Example - Get Token Balances
+//!
+//! ```rust,no_run
+//! use inf_circle_sdk::near::{get_near_token_balances, dto::NearNetwork};
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! // Query balances for multiple tokens
+//! let tokens = vec![
+//!     "usdc.fakes.testnet".to_string(),
+//!     "usdt.fakes.testnet".to_string(),
+//! ];
+//! let balances = get_near_token_balances(
+//!     "guest-book.testnet",
+//!     &tokens,
+//!     NearNetwork::Testnet,
+//!     true, // include metadata
+//! ).await?;
+//!
+//! for balance in balances {
+//!     if let Some(meta) = &balance.metadata {
+//!         println!("{} ({}): {}", meta.symbol, balance.contract_id, balance.balance);
+//!     } else {
+//!         println!("{}: {}", balance.contract_id, balance.balance);
+//!     }
+//! }
+//! # Ok(())
+//! # }
+//! ```
 
 pub mod dto;
 pub mod handler;
 
 // Re-export commonly used items
-pub use dto::{NearAccountBalance, NearNetwork};
+pub use dto::{NearAccountBalance, NearNetwork, NearTokenBalance, NearTokenMetadata};
 pub use handler::{
-    get_near_account_balance, parse_near_public_key, serialize_near_delegate_action_to_base64,
+    get_near_account_balance, get_near_token_balance, get_near_token_balances,
+    get_near_token_metadata, parse_near_public_key, serialize_near_delegate_action_to_base64,
 };

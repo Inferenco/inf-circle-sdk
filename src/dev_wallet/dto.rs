@@ -371,7 +371,7 @@ pub struct ListWalletsWithBalancesParams {
 }
 
 /// Query standard parameters
-#[derive(Debug, Serialize, Default, Clone)]
+#[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryParams {
     /// Return all resources with monitored and non-monitored tokens
@@ -401,7 +401,7 @@ pub struct QueryParams {
 }
 
 /// Parameters for listing transactions
-#[derive(Debug, Serialize, Default, Clone)]
+#[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTransactionsParams {
     /// Filter by blockchain
@@ -468,7 +468,7 @@ pub struct ListTransactionsParams {
 }
 
 /// Parameters for get transaction
-#[derive(Debug, Serialize, Default, Clone)]
+#[derive(Debug, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionParams {
     /// Filter by the transaction type

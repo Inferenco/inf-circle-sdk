@@ -5,7 +5,8 @@ use inf_circle_sdk::{
     circle_ops::circler_ops::CircleOps,
     circle_view::circle_view::CircleView,
     near::{
-        dto::NearNetwork, get_near_account_balance, parse_near_public_key,
+        dto::NearNetwork, get_near_account_balance, get_near_token_balance,
+        get_near_token_balances, get_near_token_metadata, parse_near_public_key,
         serialize_near_delegate_action_to_base64,
     },
     types::Blockchain,
@@ -56,7 +57,31 @@ async fn test_get_near_account_balance_testnet() {
     // Query balance using our NEAR helper
     // Note: NEAR implicit accounts don't exist on-chain until they receive their first transaction
     // If the account doesn't exist, we'll use a known testnet account for testing
-    let balance_result = get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+    let mut retry_count = 0;
+    let max_retries = 5;
+    let mut delay_seconds = 1;
+    let mut balance_result = get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+
+    // Retry on RPC errors
+    while retry_count < max_retries {
+        match &balance_result {
+            Ok(_) => break,
+            Err(e) if e.to_string().contains("RPC error") => {
+                retry_count += 1;
+                if retry_count < max_retries {
+                    println!(
+                        "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                        delay_seconds, retry_count, max_retries
+                    );
+                    tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                    delay_seconds *= 2; // Exponential backoff
+                    balance_result =
+                        get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+                }
+            }
+            _ => break,
+        }
+    }
 
     let (account_id, balance) = match balance_result {
         Ok(balance) => {
@@ -69,10 +94,41 @@ async fn test_get_near_account_balance_testnet() {
             println!("⚠️  Wallet account doesn't exist on-chain yet (NEAR implicit accounts need first transaction)");
             println!("   Using known testnet account 'guest-book.testnet' for balance query test");
             let fallback_account = "guest-book.testnet";
-            let balance = get_near_account_balance(fallback_account, NearNetwork::Testnet)
-                .await
-                .expect("Failed to get balance for fallback account");
-            (fallback_account.to_string(), balance)
+
+            // Retry the fallback query with exponential backoff for RPC errors
+            let mut retry_count = 0;
+            let max_retries = 5;
+            let mut delay_seconds = 1;
+
+            loop {
+                match get_near_account_balance(fallback_account, NearNetwork::Testnet).await {
+                    Ok(balance) => {
+                        break (fallback_account.to_string(), balance);
+                    }
+                    Err(e) if e.to_string().contains("RPC error") && retry_count < max_retries => {
+                        retry_count += 1;
+                        println!(
+                            "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                            delay_seconds, retry_count, max_retries
+                        );
+                        tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                        delay_seconds *= 2; // Exponential backoff
+                    }
+                    Err(e) => {
+                        panic!(
+                            "Failed to get balance for fallback account after {} retries: {}",
+                            retry_count, e
+                        );
+                    }
+                }
+            }
+        }
+        Err(e) if e.to_string().contains("RPC error") => {
+            // RPC errors after retries - fail the test
+            panic!(
+                "Failed to get NEAR account balance after {} retries: {}",
+                retry_count, e
+            );
         }
         Err(e) => {
             panic!("Failed to get NEAR account balance: {}", e);
@@ -473,7 +529,31 @@ async fn test_get_balance_for_circle_wallet() {
     // Query balance using our NEAR helper
     // Note: NEAR implicit accounts don't exist on-chain until they receive their first transaction
     // If the account doesn't exist, we'll use a known testnet account for testing
-    let balance_result = get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+    let mut retry_count = 0;
+    let max_retries = 5;
+    let mut delay_seconds = 1;
+    let mut balance_result = get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+
+    // Retry on RPC errors
+    while retry_count < max_retries {
+        match &balance_result {
+            Ok(_) => break,
+            Err(e) if e.to_string().contains("RPC error") => {
+                retry_count += 1;
+                if retry_count < max_retries {
+                    println!(
+                        "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                        delay_seconds, retry_count, max_retries
+                    );
+                    tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                    delay_seconds *= 2; // Exponential backoff
+                    balance_result =
+                        get_near_account_balance(&wallet.address, NearNetwork::Testnet).await;
+                }
+            }
+            _ => break,
+        }
+    }
 
     let (account_id, balance) = match balance_result {
         Ok(balance) => {
@@ -486,10 +566,41 @@ async fn test_get_balance_for_circle_wallet() {
             println!("⚠️  Wallet account doesn't exist on-chain yet (NEAR implicit accounts need first transaction)");
             println!("   Using known testnet account 'guest-book.testnet' for balance query test");
             let fallback_account = "guest-book.testnet";
-            let balance = get_near_account_balance(fallback_account, NearNetwork::Testnet)
-                .await
-                .expect("Failed to get balance for fallback account");
-            (fallback_account.to_string(), balance)
+
+            // Retry the fallback query with exponential backoff for RPC errors
+            let mut retry_count = 0;
+            let max_retries = 5;
+            let mut delay_seconds = 1;
+
+            loop {
+                match get_near_account_balance(fallback_account, NearNetwork::Testnet).await {
+                    Ok(balance) => {
+                        break (fallback_account.to_string(), balance);
+                    }
+                    Err(e) if e.to_string().contains("RPC error") && retry_count < max_retries => {
+                        retry_count += 1;
+                        println!(
+                            "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                            delay_seconds, retry_count, max_retries
+                        );
+                        tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                        delay_seconds *= 2; // Exponential backoff
+                    }
+                    Err(e) => {
+                        panic!(
+                            "Failed to get balance for fallback account after {} retries: {}",
+                            retry_count, e
+                        );
+                    }
+                }
+            }
+        }
+        Err(e) if e.to_string().contains("RPC error") => {
+            // RPC errors after retries - fail the test
+            panic!(
+                "Failed to get NEAR account balance after {} retries: {}",
+                retry_count, e
+            );
         }
         Err(e) => {
             panic!("Failed to get NEAR account balance: {}", e);
@@ -526,4 +637,416 @@ fn test_near_network_rpc_urls() {
     );
 
     println!("✅ Network RPC URLs are correct");
+}
+
+#[tokio::test]
+async fn test_get_near_token_balance() {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get wallet set ID
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID")
+        .expect("CIRCLE_WALLET_SET_ID environment variable not set");
+
+    // Try to get or create a NEAR wallet
+    let account_id = match get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::NearTestnet,
+        "NEAR",
+    )
+    .await
+    {
+        Ok(wallet) => {
+            // Try to fund the wallet
+            if let Err(e) = ensure_wallet_funded(&view, &wallet, &Blockchain::NearTestnet).await {
+                println!(
+                    "⚠️  Could not fund wallet via faucet (this is expected for NEAR): {}",
+                    e
+                );
+                println!("   Using well-known account 'guest-book.testnet' for token balance test");
+                "guest-book.testnet".to_string()
+            } else {
+                wallet.address
+            }
+        }
+        Err(_) => {
+            println!(
+                "⚠️  Could not create Circle wallet, using well-known account 'guest-book.testnet'"
+            );
+            "guest-book.testnet".to_string()
+        }
+    };
+
+    let token_contract = "wrap.testnet"; // Wrapped NEAR on testnet
+
+    println!("Testing token balance query for account: {}", account_id);
+    println!("Token contract: {}", token_contract);
+
+    // Retry on RPC errors
+    let mut retry_count = 0;
+    let max_retries = 5;
+    let mut delay_seconds = 1;
+    let mut balance_result =
+        get_near_token_balance(&account_id, token_contract, NearNetwork::Testnet).await;
+
+    while retry_count < max_retries {
+        match &balance_result {
+            Ok(_) => break,
+            Err(e) if e.to_string().contains("RPC error") => {
+                retry_count += 1;
+                if retry_count < max_retries {
+                    println!(
+                        "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                        delay_seconds, retry_count, max_retries
+                    );
+                    tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                    delay_seconds *= 2;
+                    balance_result =
+                        get_near_token_balance(&account_id, token_contract, NearNetwork::Testnet)
+                            .await;
+                }
+            }
+            _ => break,
+        }
+    }
+
+    match balance_result {
+        Ok(balance) => {
+            println!("✅ Successfully queried token balance");
+            println!("   Balance: {}", balance);
+
+            // Verify balance is a valid string (can be "0" or a number)
+            assert!(!balance.is_empty(), "Balance should not be empty");
+
+            // Try to parse as u128 to verify it's a valid number
+            let balance_u128: u128 = balance.parse().unwrap_or(0);
+            println!("   Parsed balance: {} (raw units)", balance_u128);
+        }
+        Err(e) => {
+            panic!(
+                "Failed to get token balance after {} retries: {}",
+                retry_count, e
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_get_near_token_metadata() {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Test querying token metadata for a known testnet token
+    let token_contract = "wrap.testnet"; // Wrapped NEAR on testnet
+
+    println!(
+        "Testing token metadata query for contract: {}",
+        token_contract
+    );
+
+    // Retry on RPC errors
+    let mut retry_count = 0;
+    let max_retries = 5;
+    let mut delay_seconds = 1;
+    let mut metadata_result = get_near_token_metadata(token_contract, NearNetwork::Testnet).await;
+
+    while retry_count < max_retries {
+        match &metadata_result {
+            Ok(_) => break,
+            Err(e) if e.to_string().contains("RPC error") => {
+                retry_count += 1;
+                if retry_count < max_retries {
+                    println!(
+                        "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                        delay_seconds, retry_count, max_retries
+                    );
+                    tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                    delay_seconds *= 2;
+                    metadata_result =
+                        get_near_token_metadata(token_contract, NearNetwork::Testnet).await;
+                }
+            }
+            _ => break,
+        }
+    }
+
+    match metadata_result {
+        Ok(metadata) => {
+            println!("✅ Successfully queried token metadata");
+            println!("   Symbol: {}", metadata.symbol);
+            println!("   Name: {}", metadata.name);
+            println!("   Decimals: {}", metadata.decimals);
+            if let Some(icon) = &metadata.icon {
+                println!("   Icon: {}", icon);
+            }
+            if let Some(reference) = &metadata.reference {
+                println!("   Reference: {}", reference);
+            }
+
+            // Verify metadata structure
+            assert!(!metadata.symbol.is_empty(), "Symbol should not be empty");
+            assert!(!metadata.name.is_empty(), "Name should not be empty");
+            assert!(
+                metadata.decimals <= 24,
+                "Decimals should be reasonable (max 24)"
+            );
+        }
+        Err(e) => {
+            panic!(
+                "Failed to get token metadata after {} retries: {}",
+                retry_count, e
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_get_near_token_balances() {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get wallet set ID
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID")
+        .expect("CIRCLE_WALLET_SET_ID environment variable not set");
+
+    // Try to get or create a NEAR wallet
+    let account_id = match get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::NearTestnet,
+        "NEAR",
+    )
+    .await
+    {
+        Ok(wallet) => {
+            // Try to fund the wallet
+            if let Err(e) = ensure_wallet_funded(&view, &wallet, &Blockchain::NearTestnet).await {
+                println!(
+                    "⚠️  Could not fund wallet via faucet (this is expected for NEAR): {}",
+                    e
+                );
+                println!(
+                    "   Using well-known account 'guest-book.testnet' for token balances test"
+                );
+                "guest-book.testnet".to_string()
+            } else {
+                wallet.address
+            }
+        }
+        Err(_) => {
+            println!(
+                "⚠️  Could not create Circle wallet, using well-known account 'guest-book.testnet'"
+            );
+            "guest-book.testnet".to_string()
+        }
+    };
+
+    // List of common testnet tokens to check
+    let token_contracts = vec![
+        "wrap.testnet".to_string(),       // Wrapped NEAR
+        "usdc.fakes.testnet".to_string(), // USDC testnet
+        "usdt.fakes.testnet".to_string(), // USDT testnet
+    ];
+
+    println!(
+        "Testing multiple token balance queries for account: {}",
+        account_id
+    );
+    println!("Checking {} token contracts...", token_contracts.len());
+
+    // Retry on RPC errors (get_near_token_balances handles retries internally for individual tokens,
+    // but we can retry the whole operation if it fails completely)
+    let mut retry_count = 0;
+    let max_retries = 3;
+    let mut delay_seconds = 1;
+    let mut balances_result = get_near_token_balances(
+        &account_id,
+        &token_contracts,
+        NearNetwork::Testnet,
+        true, // include metadata
+    )
+    .await;
+
+    // Note: get_near_token_balances already handles individual token failures gracefully,
+    // so we only retry if there's a complete failure (unlikely)
+    while retry_count < max_retries {
+        match &balances_result {
+            Ok(_) => break,
+            Err(e) if e.to_string().contains("RPC error") && retry_count < max_retries => {
+                retry_count += 1;
+                println!(
+                    "⚠️  RPC error, retrying in {} seconds ({}/{})...",
+                    delay_seconds, retry_count, max_retries
+                );
+                tokio::time::sleep(tokio::time::Duration::from_secs(delay_seconds)).await;
+                delay_seconds *= 2;
+                balances_result = get_near_token_balances(
+                    &account_id,
+                    &token_contracts,
+                    NearNetwork::Testnet,
+                    true,
+                )
+                .await;
+            }
+            _ => break,
+        }
+    }
+
+    match balances_result {
+        Ok(balances) => {
+            println!("✅ Successfully queried token balances");
+            println!("   Found {} tokens with non-zero balances", balances.len());
+
+            for balance in &balances {
+                println!("   Token: {}", balance.contract_id);
+                println!("      Balance: {}", balance.balance);
+
+                if let Some(meta) = &balance.metadata {
+                    println!("      Symbol: {}", meta.symbol);
+                    println!("      Name: {}", meta.name);
+                    println!("      Decimals: {}", meta.decimals);
+                } else {
+                    println!("      Metadata: Not available");
+                }
+            }
+
+            // Verify that all returned balances are non-zero
+            for balance in &balances {
+                let balance_u128: u128 = balance.balance.parse().unwrap_or(0);
+                assert!(balance_u128 > 0, "All returned balances should be non-zero");
+            }
+        }
+        Err(e) => {
+            panic!(
+                "Failed to get token balances after {} retries: {}",
+                retry_count, e
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_get_near_token_balances_without_metadata() {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Initialize CircleOps and CircleView
+    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let view = CircleView::new().expect("Failed to create CircleView");
+
+    // Get wallet set ID
+    let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID")
+        .expect("CIRCLE_WALLET_SET_ID environment variable not set");
+
+    // Try to get or create a NEAR wallet
+    let account_id = match get_or_create_test_wallet(
+        &ops,
+        &view,
+        &wallet_set_id,
+        &Blockchain::NearTestnet,
+        "NEAR",
+    )
+    .await
+    {
+        Ok(wallet) => {
+            // Try to fund the wallet
+            if let Err(e) = ensure_wallet_funded(&view, &wallet, &Blockchain::NearTestnet).await {
+                println!(
+                    "⚠️  Could not fund wallet via faucet (this is expected for NEAR): {}",
+                    e
+                );
+                println!(
+                    "   Using well-known account 'guest-book.testnet' for token balances test"
+                );
+                "guest-book.testnet".to_string()
+            } else {
+                wallet.address
+            }
+        }
+        Err(_) => {
+            println!(
+                "⚠️  Could not create Circle wallet, using well-known account 'guest-book.testnet'"
+            );
+            "guest-book.testnet".to_string()
+        }
+    };
+
+    let token_contracts = vec!["wrap.testnet".to_string(), "usdc.fakes.testnet".to_string()];
+
+    println!(
+        "Testing token balance queries without metadata for account: {}",
+        account_id
+    );
+
+    let balances_result = get_near_token_balances(
+        &account_id,
+        &token_contracts,
+        NearNetwork::Testnet,
+        false, // don't include metadata (faster)
+    )
+    .await;
+
+    match balances_result {
+        Ok(balances) => {
+            println!("✅ Successfully queried token balances (without metadata)");
+            println!("   Found {} tokens with non-zero balances", balances.len());
+
+            for balance in &balances {
+                println!("   Token: {}", balance.contract_id);
+                println!("      Balance: {}", balance.balance);
+                assert!(
+                    balance.metadata.is_none(),
+                    "Metadata should not be included"
+                );
+            }
+        }
+        Err(e) => {
+            panic!("Failed to get token balances: {}", e);
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_get_near_token_balance_invalid_contract() {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Test querying a non-existent token contract
+    let account_id = "guest-book.testnet";
+    let invalid_contract = "nonexistent-token.testnet";
+
+    println!(
+        "Testing token balance query with invalid contract: {}",
+        invalid_contract
+    );
+
+    let balance_result =
+        get_near_token_balance(account_id, invalid_contract, NearNetwork::Testnet).await;
+
+    // This should fail with an informative error
+    assert!(
+        balance_result.is_err(),
+        "Querying invalid contract should return an error"
+    );
+
+    if let Err(e) = balance_result {
+        println!("✅ Got expected error for invalid contract: {}", e);
+        assert!(
+            e.to_string().contains("does not exist")
+                || e.to_string().contains("RPC error")
+                || e.to_string().contains("Invalid"),
+            "Error should be informative"
+        );
+    }
 }

@@ -11,9 +11,10 @@ use near_primitives::{
     action::{base64, delegate::DelegateAction},
     types::{AccountId, BlockReference, Finality},
 };
+use serde_json::json;
 use std::str::FromStr;
 
-use super::dto::{NearAccountBalance, NearNetwork};
+use super::dto::{NearAccountBalance, NearNetwork, NearTokenBalance, NearTokenMetadata};
 
 /// Convert yoctoNEAR (1e24) to NEAR string with proper precision
 ///
@@ -158,6 +159,246 @@ pub fn serialize_near_delegate_action_to_base64(
     prefixed_bytes.extend_from_slice(&borsh_bytes);
 
     Ok(base64(&prefixed_bytes))
+}
+
+/// Get balance of a specific NEP-141 fungible token for an account
+///
+/// This function queries a specific token contract to get the balance
+/// of a given account. The balance is returned as a string to preserve precision.
+///
+/// # Arguments
+/// * `account_id` - The NEAR account ID to query
+/// * `token_contract_id` - The token contract account ID (e.g., "usdc.fakes.testnet")
+/// * `network` - The NEAR network to query (Mainnet or Testnet)
+///
+/// # Returns
+/// * `CircleResult<String>` - Token balance as string (raw amount, not adjusted for decimals)
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::near::{get_near_token_balance, dto::NearNetwork};
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let balance = get_near_token_balance(
+///     "guest-book.testnet",
+///     "usdc.fakes.testnet",
+///     NearNetwork::Testnet
+/// ).await?;
+/// println!("USDC balance: {}", balance);
+/// # Ok(())
+/// # }
+/// ```
+pub async fn get_near_token_balance(
+    account_id: &str,
+    token_contract_id: &str,
+    network: NearNetwork,
+) -> CircleResult<String> {
+    let rpc_url = network.rpc_url();
+    let client = JsonRpcClient::connect(rpc_url);
+
+    let account_id = AccountId::from_str(account_id)
+        .map_err(|e| CircleError::Config(format!("Invalid NEAR account ID: {}", e)))?;
+    let contract_id = AccountId::from_str(token_contract_id)
+        .map_err(|e| CircleError::Config(format!("Invalid token contract ID: {}", e)))?;
+
+    // Prepare arguments for ft_balance_of
+    let args = json!({
+        "account_id": account_id.as_str()
+    });
+    let args_bytes = serde_json::to_vec(&args).map_err(|e| CircleError::Json(e))?;
+
+    // Query the token contract
+    let request = methods::query::RpcQueryRequest {
+        block_reference: BlockReference::Finality(Finality::Final),
+        request: near_primitives::views::QueryRequest::CallFunction {
+            account_id: contract_id.clone(),
+            method_name: "ft_balance_of".to_string(),
+            args: args_bytes.into(),
+        },
+    };
+
+    let response = client.call(request).await.map_err(|e| CircleError::Api {
+        status: 500,
+        message: format!("NEAR RPC error querying token balance: {}", e),
+    })?;
+
+    // Parse the response
+    let result = match response {
+        methods::query::RpcQueryResponse { kind, .. } => match kind {
+            QueryResponseKind::CallResult(result) => {
+                // The result is a JSON string containing the balance
+                let result_str = String::from_utf8(result.result).map_err(|e| {
+                    CircleError::Config(format!("Invalid UTF-8 in token balance response: {}", e))
+                })?;
+
+                // Parse the JSON to extract the balance
+                let balance: String =
+                    serde_json::from_str(&result_str).map_err(|e| CircleError::Json(e))?;
+
+                balance
+            }
+            _ => {
+                return Err(CircleError::Api {
+                    status: 500,
+                    message: "Unexpected response type from NEAR RPC".to_string(),
+                });
+            }
+        },
+    };
+
+    Ok(result)
+}
+
+/// Get metadata for a NEP-141 fungible token
+///
+/// This function queries the token contract's `ft_metadata` method
+/// to get token information like symbol, name, decimals, etc.
+///
+/// # Arguments
+/// * `token_contract_id` - The token contract account ID
+/// * `network` - The NEAR network to query
+///
+/// # Returns
+/// * `CircleResult<NearTokenMetadata>` - Token metadata on success
+pub async fn get_near_token_metadata(
+    token_contract_id: &str,
+    network: NearNetwork,
+) -> CircleResult<NearTokenMetadata> {
+    let rpc_url = network.rpc_url();
+    let client = JsonRpcClient::connect(rpc_url);
+
+    let contract_id = AccountId::from_str(token_contract_id)
+        .map_err(|e| CircleError::Config(format!("Invalid token contract ID: {}", e)))?;
+
+    // Query ft_metadata (no arguments needed)
+    let request = methods::query::RpcQueryRequest {
+        block_reference: BlockReference::Finality(Finality::Final),
+        request: near_primitives::views::QueryRequest::CallFunction {
+            account_id: contract_id.clone(),
+            method_name: "ft_metadata".to_string(),
+            args: vec![].into(),
+        },
+    };
+
+    let response = client.call(request).await.map_err(|e| CircleError::Api {
+        status: 500,
+        message: format!("NEAR RPC error querying token metadata: {}", e),
+    })?;
+
+    // Parse the response
+    let metadata = match response {
+        methods::query::RpcQueryResponse { kind, .. } => match kind {
+            QueryResponseKind::CallResult(result) => {
+                let result_str = String::from_utf8(result.result).map_err(|e| {
+                    CircleError::Config(format!("Invalid UTF-8 in token metadata response: {}", e))
+                })?;
+
+                // Parse the JSON metadata
+                let metadata_json: serde_json::Value =
+                    serde_json::from_str(&result_str).map_err(|e| CircleError::Json(e))?;
+
+                NearTokenMetadata {
+                    symbol: metadata_json["symbol"].as_str().unwrap_or("").to_string(),
+                    name: metadata_json["name"].as_str().unwrap_or("").to_string(),
+                    decimals: metadata_json["decimals"].as_u64().unwrap_or(0) as u8,
+                    icon: metadata_json["icon"].as_str().map(|s| s.to_string()),
+                    reference: metadata_json["reference"].as_str().map(|s| s.to_string()),
+                }
+            }
+            _ => {
+                return Err(CircleError::Api {
+                    status: 500,
+                    message: "Unexpected response type from NEAR RPC".to_string(),
+                });
+            }
+        },
+    };
+
+    Ok(metadata)
+}
+
+/// Get balances for multiple NEP-141 fungible tokens
+///
+/// This function queries multiple token contracts to get balances for a given account.
+/// Only tokens with non-zero balances are returned. Optionally fetches token metadata.
+///
+/// # Arguments
+/// * `account_id` - The NEAR account ID to query
+/// * `token_contracts` - List of token contract account IDs to check
+/// * `network` - The NEAR network to query
+/// * `include_metadata` - Whether to fetch token metadata (slower but more informative)
+///
+/// # Returns
+/// * `CircleResult<Vec<NearTokenBalance>>` - List of token balances (only non-zero balances)
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::near::{get_near_token_balances, dto::NearNetwork};
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let tokens = vec![
+///     "usdc.fakes.testnet".to_string(),
+///     "usdt.fakes.testnet".to_string(),
+/// ];
+/// let balances = get_near_token_balances(
+///     "guest-book.testnet",
+///     &tokens,
+///     NearNetwork::Testnet,
+///     true, // include metadata
+/// ).await?;
+///
+/// for balance in balances {
+///     println!("{}: {}", balance.contract_id, balance.balance);
+/// }
+/// # Ok(())
+/// # }
+/// ```
+pub async fn get_near_token_balances(
+    account_id: &str,
+    token_contracts: &[String],
+    network: NearNetwork,
+    include_metadata: bool,
+) -> CircleResult<Vec<NearTokenBalance>> {
+    let mut balances = Vec::new();
+
+    for contract_id in token_contracts {
+        // Query balance
+        match get_near_token_balance(account_id, contract_id, network).await {
+            Ok(balance_str) => {
+                // Parse balance as u128 to check if it's zero
+                let balance_u128: u128 = balance_str.parse().unwrap_or(0);
+
+                // Only include non-zero balances
+                if balance_u128 > 0 {
+                    let metadata = if include_metadata {
+                        match get_near_token_metadata(contract_id, network).await {
+                            Ok(meta) => Some(meta),
+                            Err(_) => None, // Continue even if metadata fetch fails
+                        }
+                    } else {
+                        None
+                    };
+
+                    balances.push(NearTokenBalance {
+                        contract_id: contract_id.clone(),
+                        balance: balance_str,
+                        metadata,
+                    });
+                }
+            }
+            Err(e) => {
+                // Log error but continue with other tokens
+                eprintln!(
+                    "Warning: Failed to query balance for {}: {}",
+                    contract_id, e
+                );
+            }
+        }
+    }
+
+    Ok(balances)
 }
 
 /// Parse a NEAR public key from various formats
