@@ -132,7 +132,7 @@ where
 }
 
 /// Common query parameters for pagination
-#[derive(Debug, Serialize, Default, Clone)]
+#[derive(Debug, Serialize, Default, Clone, Deserialize)]
 pub struct PaginationParams {
     #[serde(rename = "pageAfter", skip_serializing_if = "Option::is_none")]
     pub page_after: Option<String>,

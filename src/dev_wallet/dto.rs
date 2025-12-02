@@ -5,7 +5,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum FeeLevel {
     Low,
@@ -24,7 +24,7 @@ impl FeeLevel {
 }
 
 /// Request structure for creating wallets
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateDevWalletRequest {
     /// System-generated unique identifier of the wallet set
@@ -74,7 +74,7 @@ pub struct DevWalletMetadata {
 }
 
 /// Request structure for updating a wallet
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateDevWalletRequest {
     /// Wallet name/description
@@ -142,7 +142,7 @@ pub struct DevWallet {
 }
 
 /// Request structure for signing a message
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignMessageRequest {
     /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
@@ -164,7 +164,7 @@ pub struct SignMessageRequest {
 }
 
 /// Request structure for signing a data
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignDataRequest {
     /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
@@ -182,7 +182,7 @@ pub struct SignDataRequest {
 }
 
 /// Response structure for signing a transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignTransactionRequest {
     /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
@@ -205,7 +205,7 @@ pub struct SignTransactionRequest {
 }
 
 /// Response structure for signing a transaction
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignTransactionResponse {
     /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
@@ -220,7 +220,7 @@ pub struct SignTransactionResponse {
 }
 
 /// Request structure for signing a delegate action
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignDelegateRequest {
     /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key. Circle mandates that the entity secret ciphertext is unique for each API request.
@@ -234,7 +234,7 @@ pub struct SignDelegateRequest {
 }
 
 /// Response structure for signing a delegate action
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignDelegateResponse {
     /// Each chain encode signatures in a different way, please refer to Signing APIs doc and the blockchain's document.
@@ -319,7 +319,7 @@ pub struct ListDevWalletsParams {
 }
 
 /// Query parameters for listing wallets with token balances
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListWalletsWithBalancesParams {
     /// Required: Filter by blockchain
@@ -371,7 +371,7 @@ pub struct ListWalletsWithBalancesParams {
 }
 
 /// Query standard parameters
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryParams {
     /// Return all resources with monitored and non-monitored tokens
@@ -401,7 +401,7 @@ pub struct QueryParams {
 }
 
 /// Parameters for listing transactions
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTransactionsParams {
     /// Filter by blockchain
@@ -468,7 +468,7 @@ pub struct ListTransactionsParams {
 }
 
 /// Parameters for get transaction
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionParams {
     /// Filter by the transaction type
@@ -828,7 +828,7 @@ pub struct RiskSignal {
 }
 
 /// Request structure for creating a transfer transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTransferTransactionRequest {
     /// Unique system generated identifier of the wallet. Required when sourceAddress and blockchain are not provided.
@@ -909,7 +909,7 @@ pub struct CreateTransferTransactionResponse {
 }
 
 /// Request structure for validating an address
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateAddressBody {
     pub address: String,
 }
@@ -922,7 +922,7 @@ pub struct ValidateAddressResponse {
 }
 
 /// ABI parameter types for contract execution
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum AbiParameter {
     String(String),
@@ -932,7 +932,7 @@ pub enum AbiParameter {
 }
 
 /// Request structure for estimating contract execution fee
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EstimateContractExecutionFeeBody {
     /// The blockchain address of the contract to be executed
@@ -1000,7 +1000,7 @@ pub struct EstimateContractExecutionFeeResponse {
 }
 
 /// Request structure for estimating transfer transaction fee
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EstimateTransferFeeRequest {
     /// Blockchain address of the destination
@@ -1046,7 +1046,7 @@ pub struct EstimateTransferFeeRequest {
 pub type EstimateTransferFeeResponse = EstimateContractExecutionFeeResponse;
 
 /// ABI parameter types for contract queries
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum ContractAbiParameter {
     String(String),
@@ -1056,7 +1056,7 @@ pub enum ContractAbiParameter {
 }
 
 /// Request structure for querying a contract
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryContractRequest {
     /// The blockchain network (required)
@@ -1112,7 +1112,7 @@ pub struct QueryContractResponse {
 }
 
 /// SCA Core version enum for wallet upgrades
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ScaCore {
     #[serde(rename = "circle_6900_singleowner_v3")]
     Circle6900SingleownerV3,
@@ -1127,7 +1127,7 @@ impl ScaCore {
 }
 
 /// Request structure for creating a wallet upgrade transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateWalletUpgradeTransactionRequest {
     /// Unique system generated identifier of the wallet
@@ -1183,7 +1183,7 @@ pub struct CreateWalletUpgradeTransactionResponse {
 }
 
 /// Request structure for creating a contract execution transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateContractExecutionTransactionRequest {
     /// Unique system generated identifier of the wallet
@@ -1258,7 +1258,7 @@ pub struct CreateContractExecutionTransactionResponse {
 }
 
 /// Request structure for canceling a transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CancelTransactionRequest {
     /// A base64 string expression of the entity secret ciphertext
@@ -1280,7 +1280,7 @@ pub struct CancelTransactionResponse {
 }
 
 /// Request structure for accelerating a transaction
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccelerateTransactionRequest {
     /// A base64 string expression of the entity secret ciphertext
@@ -1299,7 +1299,7 @@ pub struct AccelerateTransactionResponse {
 }
 
 /// Request structure for requesting testnet tokens from faucet
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestTestnetTokensRequest {
     /// The testnet blockchain network
