@@ -74,7 +74,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Example 1: Transfer native tokens (ETH)
     println!("\n📤 Example 1: Transferring 0.001 ETH...");
 
-    let transfer_builder = CreateTransferTransactionRequestBuilder::new(source_wallet.id.clone())
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+        .wallet_id(source_wallet.id.clone())
         .destination_address(dest_wallet.address.clone())
         .amounts(vec!["0.001".to_string()]) // 0.001 ETH
         .blockchain(Blockchain::EthSepolia)
@@ -100,7 +101,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let usdc_address = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // USDC on Sepolia
 
-    let erc20_transfer = CreateTransferTransactionRequestBuilder::new(source_wallet.id.clone())
+    let erc20_transfer = CreateTransferTransactionRequestBuilder::new()
+        .wallet_id(source_wallet.id.clone())
         .destination_address(dest_wallet.address.clone())
         .amounts(vec!["1.0".to_string()]) // 1.0 USDC
         .token_address(usdc_address.to_string())

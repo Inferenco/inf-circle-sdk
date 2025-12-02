@@ -3,7 +3,8 @@ use crate::types::Blockchain;
 
 #[derive(Clone, Debug)]
 pub struct CreateTransferTransactionRequestBuilder {
-    pub wallet_id: String,
+    pub wallet_id: Option<String>,
+    pub wallet_address: Option<String>,
     pub destination_address: String,
     pub amounts: Vec<String>,
     pub nft_token_ids: Option<Vec<String>>,
@@ -20,9 +21,10 @@ pub struct CreateTransferTransactionRequestBuilder {
 }
 
 impl CreateTransferTransactionRequestBuilder {
-    pub fn new(wallet_id: String) -> Self {
+    pub fn new() -> Self {
         Self {
-            wallet_id,
+            wallet_id: None,
+            wallet_address: None,
             destination_address: String::new(),
             amounts: Vec::new(),
             nft_token_ids: None,
@@ -37,6 +39,16 @@ impl CreateTransferTransactionRequestBuilder {
             gas_price: None,
             max_fee: None,
         }
+    }
+
+    pub fn wallet_id(mut self, wallet_id: String) -> Self {
+        self.wallet_id = Some(wallet_id);
+        self
+    }
+
+    pub fn wallet_address(mut self, wallet_address: String) -> Self {
+        self.wallet_address = Some(wallet_address);
+        self
     }
 
     pub fn destination_address(mut self, destination_address: String) -> Self {

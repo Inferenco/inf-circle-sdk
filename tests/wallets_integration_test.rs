@@ -1126,7 +1126,8 @@ async fn test_get_transaction() {
             .expect("Failed to get or create destination wallet");
 
     // 3. Create a transfer transaction
-    let transfer_builder = CreateTransferTransactionRequestBuilder::new(source_wallet.id.clone())
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+        .wallet_id(source_wallet.id.clone())
         .destination_address(destination_wallet.address.clone())
         .amounts(vec!["0.001".to_string()])
         .blockchain(Blockchain::EthSepolia)
@@ -1267,7 +1268,8 @@ async fn test_create_transfer_transaction_with_fee_level() {
     println!("Destination address: {}", destination_wallet.address);
 
     // 2. Create a transfer transaction using FeeLevel
-    let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+        .wallet_id(test_wallet.id.clone())
         .destination_address(destination_wallet.address.clone())
         .amounts(vec!["0.001".to_string()]) // Transfer 0.001 ETH
         .blockchain(Blockchain::EthSepolia) // Required for native token transfers
@@ -1351,7 +1353,8 @@ async fn test_create_transfer_transaction_with_gas_settings() {
     let dest_address = destination_wallet.address.clone();
 
     let response = common::retry_on_rate_limit(|| async {
-        let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet_id.clone())
+        let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+            .wallet_id(test_wallet_id.clone())
             .destination_address(dest_address.clone())
             .amounts(vec!["0.001".to_string()])
             .blockchain(Blockchain::EthSepolia) // Required for native token transfers
@@ -1419,7 +1422,8 @@ async fn test_create_token_transfer_transaction() {
     println!("   📝 Enter wallet address: {}", test_wallet.address);
     println!("   Request both ETH and LINK tokens\n");
 
-    let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet.id.clone())
+    let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+        .wallet_id(test_wallet.id.clone())
         .destination_address(destination_wallet.address.clone())
         .amounts(vec!["0.1".to_string()]) // Transfer 0.1 LINK
         .token_address(link_token_address.to_string())
@@ -1515,7 +1519,8 @@ async fn test_create_transfer_transaction_all_fee_levels() {
         let level_name_str = level_name.to_string();
 
         let response = retry_on_rate_limit(|| async {
-            let transfer_builder = CreateTransferTransactionRequestBuilder::new(wallet_id.clone())
+            let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+                .wallet_id(wallet_id.clone())
                 .destination_address(dest_address.clone())
                 .amounts(vec!["0.001".to_string()])
                 .blockchain(Blockchain::EthSepolia)
@@ -1844,7 +1849,8 @@ async fn test_cancel_transaction() {
     let dest_address = destination_wallet.address.clone();
 
     let transaction_response = common::retry_on_rate_limit(|| async {
-        let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet_id.clone())
+        let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+            .wallet_id(test_wallet_id.clone())
             .destination_address(dest_address.clone())
             .amounts(vec!["0.0001".to_string()])
             .blockchain(Blockchain::EthSepolia)
@@ -1921,7 +1927,8 @@ async fn test_accelerate_transaction() {
     let dest_address = destination_wallet.address.clone();
 
     let transaction_response = common::retry_on_rate_limit(|| async {
-        let transfer_builder = CreateTransferTransactionRequestBuilder::new(test_wallet_id.clone())
+        let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+            .wallet_id(test_wallet_id.clone())
             .destination_address(dest_address.clone())
             .amounts(vec!["0.0001".to_string()])
             .blockchain(Blockchain::EthSepolia)

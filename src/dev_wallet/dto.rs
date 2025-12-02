@@ -832,7 +832,10 @@ pub struct RiskSignal {
 #[serde(rename_all = "camelCase")]
 pub struct CreateTransferTransactionRequest {
     /// Unique system generated identifier of the wallet. Required when sourceAddress and blockchain are not provided.
-    pub wallet_id: String,
+    pub wallet_id: Option<String>,
+
+    /// Blockchain generated unique identifier, associated with wallet (account), smart contract or other blockchain objects.
+    pub wallet_address: Option<String>,
 
     /// A base64 string expression of the entity secret ciphertext. The entity secret should be encrypted by the entity public key.
     pub entity_secret_ciphertext: String,

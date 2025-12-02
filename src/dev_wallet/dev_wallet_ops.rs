@@ -391,6 +391,7 @@ impl CircleOps {
         let request = CreateTransferTransactionRequest {
             entity_secret_ciphertext,
             wallet_id: builder.wallet_id,
+            wallet_address: builder.wallet_address,
             destination_address: builder.destination_address,
             amounts: builder.amounts,
             nft_token_ids: builder.nft_token_ids,

@@ -123,15 +123,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("   (Low fee = slower confirmation = good for testing cancel/accelerate)\n");
 
         // Create a slow transaction to demonstrate cancel/accelerate
-        let transfer_builder =
-            CreateTransferTransactionRequestBuilder::new(source_wallet.id.clone())
-                .destination_address(dest_wallet.address.clone())
-                .amounts(vec!["0.0001".to_string()])
-                .blockchain(Blockchain::EthSepolia)
-                .fee_level(FeeLevel::Low) // Low fee = slower
-                .idempotency_key(Uuid::new_v4().to_string())
-                .ref_id("slow-transfer-for-demo".to_string())
-                .build();
+        let transfer_builder = CreateTransferTransactionRequestBuilder::new()
+            .wallet_id(source_wallet.id.clone())
+            .destination_address(dest_wallet.address.clone())
+            .amounts(vec!["0.0001".to_string()])
+            .blockchain(Blockchain::EthSepolia)
+            .fee_level(FeeLevel::Low) // Low fee = slower
+            .idempotency_key(Uuid::new_v4().to_string())
+            .ref_id("slow-transfer-for-demo".to_string())
+            .build();
 
         match ops.create_dev_transfer_transaction(transfer_builder).await {
             Ok(response) => {
