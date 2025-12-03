@@ -1,5 +1,24 @@
 use crate::dev_wallet::dto::{FeeLevel, ScaCore};
 
+/// Builder for creating wallet upgrade transaction requests
+///
+/// This builder helps construct requests to upgrade a wallet's SCA core implementation.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::dev_wallet::ops::create_wallet_upgrade_transaction::CreateWalletUpgradeTransactionRequestBuilder;
+/// use inf_circle_sdk::dev_wallet::dto::{FeeLevel, ScaCore};
+/// use uuid::Uuid;
+///
+/// let builder = CreateWalletUpgradeTransactionRequestBuilder::new(
+///     "wallet-id".to_string(),
+///     ScaCore::Circle6900SingleownerV3,
+///     Uuid::new_v4().to_string()
+/// )
+/// .fee_level(FeeLevel::Medium)
+/// .build();
+/// ```
 #[derive(Clone, Debug)]
 pub struct CreateWalletUpgradeTransactionRequestBuilder {
     pub wallet_id: String,

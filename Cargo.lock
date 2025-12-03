@@ -434,6 +434,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -1026,7 +1027,7 @@ dependencies = [
 
 [[package]]
 name = "inf-circle-sdk"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1083,9 +1084,9 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -1214,20 +1215,21 @@ dependencies = [
 
 [[package]]
 name = "mockito"
-version = "1.7.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7760e0e418d9b7e5777c0374009ca4c93861b9066f18cb334a20ce50ab63aa48"
+checksum = "7e0603425789b4a70fcc4ac4f5a46a566c116ee3e2a6b768dc623f7719c611de"
 dependencies = [
  "assert-json-diff",
  "bytes",
  "colored",
- "futures-util",
+ "futures-core",
  "http",
  "http-body",
  "http-body-util",
  "hyper",
  "hyper-util",
  "log",
+ "pin-project-lite",
  "rand 0.9.2",
  "regex",
  "serde_json",
@@ -1255,9 +1257,9 @@ dependencies = [
 
 [[package]]
 name = "near-account-id"
-version = "1.1.4"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "975bb8e272af403d97656893f71e095e1b178ccee571b3ec4a193152be0248f5"
+checksum = "0bf7d8c37ea9408d536af7e998bd0d4f9699de1f6b0d12280d28ae46977c4501"
 dependencies = [
  "borsh",
  "serde",
@@ -1265,9 +1267,9 @@ dependencies = [
 
 [[package]]
 name = "near-chain-configs"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25001b98cf7e58e2dd78cb989e8f61d2f36fd74f7c86e67cf80094888cdec076"
+checksum = "eaace3f6745486220da236fc454cbeb32b01aac8523cd736857e62446065dcb0"
 dependencies = [
  "anyhow",
  "bytesize",
@@ -1290,9 +1292,9 @@ dependencies = [
 
 [[package]]
 name = "near-config-utils"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cff5ad86b567ae30c6a553dfb00680e22d3a80570d980ba8c1ee11ef17e51ffd"
+checksum = "797c54bb5097e938dcb6f9b4cfa97060275a06378fdc17ac71cb5ff7785a6f87"
 dependencies = [
  "anyhow",
  "json_comments",
@@ -1302,9 +1304,9 @@ dependencies = [
 
 [[package]]
 name = "near-crypto"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6153d877aa88bbd9a1c5d722f2d082f716967fb9ee4f0159ffbad1beb5acbc2"
+checksum = "45c39921075013bc68ae446f9d1234c14df88facbc845ce2e698fe2df1698c4e"
 dependencies = [
  "blake2",
  "borsh",
@@ -1328,18 +1330,28 @@ dependencies = [
 
 [[package]]
 name = "near-fmt"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9493f892f4790d607bf20bb18936e9a346a7ddde81293954a3680b5be3250c45"
+checksum = "51901d9217401785fb204c3c413b1dbc0d6f7bf8e44f5a312bd2f78c4fdc14be"
 dependencies = [
  "near-primitives-core",
 ]
 
 [[package]]
-name = "near-jsonrpc-client"
-version = "0.19.0"
+name = "near-gas"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69475822d9c09101d2b5294bd1c64443381223476980f5f29b8da54c855f6373"
+checksum = "1cecd5d9463587f34f2b7ff4c7104297483a543be8a68a4a04a8ac96c419d1a1"
+dependencies = [
+ "borsh",
+ "serde",
+]
+
+[[package]]
+name = "near-jsonrpc-client"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94937febf6a8e8d0cfbf194007a426bed81f41d84665a5982fcb7b4e3b21eca6"
 dependencies = [
  "borsh",
  "lazy_static",
@@ -1356,9 +1368,9 @@ dependencies = [
 
 [[package]]
 name = "near-jsonrpc-primitives"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c239192e6f09a6d93c7d1e276f74bbb9dbf1938bd78df6f98e2a1c5ccc71733e"
+checksum = "888eca04c06e336b9d1436acf73a440c26f3a0433239b70733ef230f5596d3fb"
 dependencies = [
  "arbitrary",
  "near-chain-configs",
@@ -1374,9 +1386,9 @@ dependencies = [
 
 [[package]]
 name = "near-parameters"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a2f1fec3641fb03466634db84849356869a0cb574dcea04618fda25ca5d5d6f"
+checksum = "ed5e47794f75f3b4e12f249e3f9e9eec3facfcf7a89713b10fa28e02b7a2b66b"
 dependencies = [
  "borsh",
  "enum-map",
@@ -1393,9 +1405,9 @@ dependencies = [
 
 [[package]]
 name = "near-primitives"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ab81aaef264724f2590bba9d24e7e0b79c9d4a1de9365a0e611be3e63d07b98"
+checksum = "9c2f46836efc806ebd166b5702be47330cae69ab8687f8397f04ccc2a56d3ce8"
 dependencies = [
  "arbitrary",
  "base64 0.21.7",
@@ -1425,6 +1437,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha3",
+ "smallvec",
  "smart-default",
  "strum",
  "thiserror",
@@ -1434,9 +1447,9 @@ dependencies = [
 
 [[package]]
 name = "near-primitives-core"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f3eb2516c914609562b01c025782dd2a81718861cd57a5be776144c5de604ee"
+checksum = "6fe127cf89c4a64d38224bf184446416b5923a666e4cdde0349e89a4013d6024"
 dependencies = [
  "arbitrary",
  "base64 0.21.7",
@@ -1445,25 +1458,28 @@ dependencies = [
  "derive_more",
  "enum-map",
  "near-account-id",
+ "near-gas",
  "near-schema-checker-lib",
+ "near-token",
  "num-rational",
  "serde",
  "serde_repr",
+ "serde_with",
  "sha2",
  "thiserror",
 ]
 
 [[package]]
 name = "near-schema-checker-core"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5434b2815fdd88942fbbde9f00a2766151c496ff6f7123befa0306de24849707"
+checksum = "f0ebd96a4d1f5ee1c1697fe9711a2f4e702054741dfee2a828e708a893edcf84"
 
 [[package]]
 name = "near-schema-checker-lib"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a267b03ee17926c2371497e6cf165716ea023119e338884dd1c91762d0a3b1b9"
+checksum = "f36c8928bf590bb6dd58980007a49552590378cfd2c3a85da204eb11492b6ccc"
 dependencies = [
  "near-schema-checker-core",
  "near-schema-checker-macro",
@@ -1471,25 +1487,35 @@ dependencies = [
 
 [[package]]
 name = "near-schema-checker-macro"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eac91dc4ca1fe406568f3a0b97117a0a256b60526490a37beb2de8e84f6ce636"
+checksum = "87e6d9a6251fed6eabce96734f9c4de368da106f7bb46fe743345c699b498553"
 
 [[package]]
 name = "near-stdx"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0172f0e627b3a69e483773966d49e70273aa7784d90be6327c495944ae74716f"
+checksum = "9753b00780a36ccb8a8f3bb2ee1c0e48de4c153a5b4c4828352efbe52924aeb9"
 
 [[package]]
 name = "near-time"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5158b9c0910a6e844c5a63679ad679d3888d4151927915373910af907e8ac1e"
+checksum = "edf78a9fc25a2eac3804e02a4a289fb3a2ab654f6241578507514ddefe4b93b7"
 dependencies = [
  "parking_lot",
  "serde",
  "time",
+]
+
+[[package]]
+name = "near-token"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34de6b54d82d0790b2a56b677e7b4ecb7f021a7e8559f8611065c890d56cfcda"
+dependencies = [
+ "borsh",
+ "serde",
 ]
 
 [[package]]
@@ -2781,6 +2807,12 @@ name = "unicode-ident"
 version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d"
+
+[[package]]
+name = "unicode-xid"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unsafe-libyaml"

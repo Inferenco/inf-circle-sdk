@@ -15,6 +15,24 @@ pub enum NearNetwork {
 
 impl NearNetwork {
     /// Get the RPC endpoint URL for this network
+    ///
+    /// Returns the official NEAR RPC endpoint URL for the specified network.
+    ///
+    /// # Returns
+    ///
+    /// Returns a static string slice with the RPC endpoint URL.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use inf_circle_sdk::near::dto::NearNetwork;
+    ///
+    /// let mainnet = NearNetwork::Mainnet;
+    /// assert_eq!(mainnet.rpc_url(), "https://rpc.mainnet.near.org");
+    ///
+    /// let testnet = NearNetwork::Testnet;
+    /// assert_eq!(testnet.rpc_url(), "https://rpc.testnet.near.org");
+    /// ```
     pub fn rpc_url(&self) -> &'static str {
         match self {
             NearNetwork::Mainnet => "https://rpc.mainnet.near.org",

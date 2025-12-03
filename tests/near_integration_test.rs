@@ -16,7 +16,8 @@ use near_primitives::{
         delegate::{DelegateAction, NonDelegateAction},
         Action as NearAction, FunctionCallAction,
     },
-    types::AccountId as NearAccountId,
+    gas::Gas,
+    types::{AccountId as NearAccountId, Balance},
 };
 use std::env;
 
@@ -421,8 +422,8 @@ async fn test_serialize_near_delegate_action() {
     let function_call = FunctionCallAction {
         method_name: "test_method".to_string(),
         args: r#"{"test":"data"}"#.as_bytes().to_vec(),
-        gas: 100_000_000_000_000,
-        deposit: 0,
+        gas: Gas::from_gas(100_000_000_000_000),
+        deposit: Balance::from_yoctonear(0u128),
     };
 
     let action = NearAction::FunctionCall(Box::new(function_call));

@@ -81,6 +81,34 @@ impl CircleView {
     }
 
     /// Generic request method for read operations
+    ///
+    /// This is an internal helper method used by other methods in this struct.
+    /// Typically, you should use the specific methods like `get`, `post`, `put`, or `patch` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `method` - HTTP method (GET, POST, PUT, PATCH, DELETE)
+    /// * `path` - API endpoint path
+    /// * `body` - Optional request body to serialize
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    /// use reqwest::Method;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// // Usually you'd use view.get() instead
+    /// let response: serde_json::Value = view.request(
+    ///     Method::GET,
+    ///     "/v1/w3s/wallets",
+    ///     None::<&serde_json::Value>
+    /// ).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn request<T, R>(
         &self,
         method: Method,
@@ -101,6 +129,32 @@ impl CircleView {
     }
 
     /// GET request with query parameters
+    ///
+    /// Sends a GET request with query parameters serialized from the provided params object.
+    /// This is an internal helper method typically used by `get_with_params`.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `params` - Query parameters to serialize
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let params = serde_json::json!({
+    ///     "pageSize": 10,
+    ///     "pageAfter": "cursor"
+    /// });
+    ///
+    /// let response: serde_json::Value = view.request_with_params("/v1/w3s/wallets", &params).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn request_with_params<T, R>(&self, path: &str, params: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -117,6 +171,25 @@ impl CircleView {
     }
 
     /// GET request helper
+    ///
+    /// Sends a GET request to the specified endpoint and deserializes the response.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let response: serde_json::Value = view.get("/v1/w3s/wallets/wallet-id").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get<R>(&self, path: &str) -> CircleResult<R>
     where
         R: for<'de> serde::Deserialize<'de>,
@@ -125,6 +198,27 @@ impl CircleView {
     }
 
     /// GET request helper for endpoints that return plain JSON (not wrapped in data field)
+    ///
+    /// Some Circle API endpoints return plain JSON responses instead of the standard
+    /// `{ "data": {...} }` format. This method handles those cases.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// // The /ping endpoint returns plain JSON
+    /// let response: serde_json::Value = view.get_plain("/ping").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_plain<R>(&self, path: &str) -> CircleResult<R>
     where
         R: for<'de> serde::Deserialize<'de>,
@@ -153,6 +247,31 @@ impl CircleView {
     }
 
     /// GET request with query parameters helper
+    ///
+    /// Sends a GET request with query parameters serialized from the provided params object.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `params` - Query parameters to serialize and append to the URL
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let params = serde_json::json!({
+    ///     "pageSize": 10,
+    ///     "blockchain": "ETH-SEPOLIA"
+    /// });
+    ///
+    /// let response: serde_json::Value = view.get_with_params("/v1/w3s/wallets", &params).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_with_params<T, R>(&self, path: &str, params: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -162,6 +281,30 @@ impl CircleView {
     }
 
     /// POST request helper
+    ///
+    /// Sends a POST request to the specified endpoint with the given body.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+    /// });
+    ///
+    /// let response: serde_json::Value = view.post("/v1/w3s/transactions/validateAddress", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn post<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -171,6 +314,30 @@ impl CircleView {
     }
 
     /// PUT request helper
+    ///
+    /// Sends a PUT request to the specified endpoint with the given body.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "isEnabled": false
+    /// });
+    ///
+    /// let response: serde_json::Value = view.put("/v1/w3s/contracts/monitors/monitor-id", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn put<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -180,6 +347,30 @@ impl CircleView {
     }
 
     /// PATCH request helper
+    ///
+    /// Sends a PATCH request to the specified endpoint with the given body.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "name": "Updated Name"
+    /// });
+    ///
+    /// let response: serde_json::Value = view.patch("/v1/w3s/contracts/contract-id", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn patch<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -189,6 +380,25 @@ impl CircleView {
     }
 
     /// DELETE request helper
+    ///
+    /// Sends a DELETE request to the specified endpoint and deserializes the response.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let response: serde_json::Value = view.delete("/v1/w3s/contracts/monitors/monitor-id").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn delete<R>(&self, path: &str) -> CircleResult<R>
     where
         R: for<'de> serde::Deserialize<'de>,
@@ -197,6 +407,28 @@ impl CircleView {
     }
 
     /// DELETE request helper that expects no response body
+    ///
+    /// Sends a DELETE request to the specified endpoint and expects an empty response (204 No Content).
+    /// This is used for endpoints that don't return a response body on successful deletion.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// // Delete a notification subscription (returns 204 No Content)
+    /// view.delete_no_content("/v2/notifications/subscriptions/subscription-id").await?;
+    /// println!("✅ Deleted successfully");
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn delete_no_content(&self, path: &str) -> CircleResult<()> {
         use crate::helper::{CircleError, CircleErrorResponse};
 

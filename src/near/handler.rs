@@ -111,8 +111,9 @@ pub async fn get_near_account_balance(
     };
 
     // Extract amounts (in yoctoNEAR)
-    let amount = account_view.amount;
-    let locked = account_view.locked;
+    // In near-primitives 0.34+, amount and locked are NearToken types, need to convert to u128
+    let amount = account_view.amount.as_yoctonear();
+    let locked = account_view.locked.as_yoctonear();
 
     // Calculate available balance using integer arithmetic to preserve precision
     let available_yocto = amount.saturating_sub(locked);
@@ -261,6 +262,19 @@ pub async fn get_near_token_balance(
 ///
 /// # Returns
 /// * `CircleResult<NearTokenMetadata>` - Token metadata on success
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::near::{get_near_token_metadata, dto::NearNetwork};
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let metadata = get_near_token_metadata("usdc.fakes.testnet", NearNetwork::Testnet).await?;
+/// println!("Token: {} ({})", metadata.name, metadata.symbol);
+/// println!("Decimals: {}", metadata.decimals);
+/// # Ok(())
+/// # }
+/// ```
 pub async fn get_near_token_metadata(
     token_contract_id: &str,
     network: NearNetwork,

@@ -92,6 +92,34 @@ impl CircleOps {
     }
 
     /// Generic request method for write operations
+    ///
+    /// This is an internal helper method used by other methods in this struct.
+    /// Typically, you should use the specific methods like `post`, `put`, or `patch` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `method` - HTTP method (POST, PUT, PATCH)
+    /// * `path` - API endpoint path
+    /// * `body` - Optional request body to serialize
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    /// use reqwest::Method;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// // Usually you'd use ops.post() instead
+    /// let response: serde_json::Value = ops.request(
+    ///     Method::POST,
+    ///     "/v1/w3s/wallets",
+    ///     Some(&serde_json::json!({"key": "value"}))
+    /// ).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn request<T, R>(
         &self,
         method: Method,
@@ -112,6 +140,31 @@ impl CircleOps {
     }
 
     /// POST request helper
+    ///
+    /// Sends a POST request to the specified endpoint with the given body.
+    /// The entity secret is automatically encrypted and included in the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "name": "My Resource"
+    /// });
+    ///
+    /// let response: serde_json::Value = ops.post("/v1/w3s/some-endpoint", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn post<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -121,6 +174,31 @@ impl CircleOps {
     }
 
     /// PUT request helper
+    ///
+    /// Sends a PUT request to the specified endpoint with the given body.
+    /// The entity secret is automatically encrypted and included in the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "name": "Updated Resource"
+    /// });
+    ///
+    /// let response: serde_json::Value = ops.put("/v1/w3s/some-endpoint/id", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn put<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -130,6 +208,31 @@ impl CircleOps {
     }
 
     /// PATCH request helper
+    ///
+    /// Sends a PATCH request to the specified endpoint with the given body.
+    /// The entity secret is automatically encrypted and included in the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - Request body to serialize and send
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let request_body = serde_json::json!({
+    ///     "name": "Partially Updated Resource"
+    /// });
+    ///
+    /// let response: serde_json::Value = ops.patch("/v1/w3s/some-endpoint/id", &request_body).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn patch<T, R>(&self, path: &str, body: &T) -> CircleResult<R>
     where
         T: Serialize,
@@ -138,6 +241,34 @@ impl CircleOps {
         self.request(Method::PATCH, path, Some(body)).await
     }
 
+    /// Get encrypted entity secret
+    ///
+    /// Encrypts the entity secret using RSA-OAEP with SHA-256 and returns the ciphertext.
+    /// This is used internally by write operations to authenticate requests.
+    /// A fresh encryption is generated each time this method is called.
+    ///
+    /// # Returns
+    ///
+    /// Returns the base64-encoded encrypted entity secret ciphertext.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if encryption fails.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    ///
+    /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// // Get encrypted entity secret for a request
+    /// let encrypted_secret = ops.entity_secret()?;
+    /// // This is automatically done by post/put/patch methods
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn entity_secret(&self) -> CircleResult<String> {
         let entity_secret_ciphertext = encrypt_entity_secret(&self.entity_secret, &self.public_key)
             .map_err(|e| CircleError::Config(format!("Failed to encrypt entity secret: {}", e)))?;

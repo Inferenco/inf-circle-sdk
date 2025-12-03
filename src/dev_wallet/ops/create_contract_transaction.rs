@@ -1,5 +1,30 @@
 use crate::dev_wallet::dto::{AbiParameter, FeeLevel};
 
+/// Builder for creating contract execution transaction requests
+///
+/// This builder helps construct requests to execute smart contract functions,
+/// either using ABI encoding or raw call data.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::dev_wallet::ops::create_contract_transaction::CreateContractExecutionTransactionRequestBuilder;
+/// use inf_circle_sdk::dev_wallet::dto::{AbiParameter, FeeLevel};
+/// use uuid::Uuid;
+///
+/// let builder = CreateContractExecutionTransactionRequestBuilder::new(
+///     "wallet-id".to_string(),
+///     "0xContractAddress".to_string(),
+///     Uuid::new_v4().to_string()
+/// )
+/// .abi_function_signature("transfer(address,uint256)".to_string())
+/// .abi_parameters(vec![
+///     AbiParameter::String("0x...".to_string()),
+///     AbiParameter::String("1000000".to_string()),
+/// ])
+/// .fee_level(FeeLevel::Medium)
+/// .build();
+/// ```
 #[derive(Clone, Debug)]
 pub struct CreateContractExecutionTransactionRequestBuilder {
     pub wallet_id: String,

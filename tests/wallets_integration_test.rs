@@ -243,10 +243,11 @@ async fn ensure_wallet_funded(
 // NEAR Protocol types (official)
 use near_primitives::{
     action::{
-        delegate::DelegateAction, delegate::NonDelegateAction, Action as NearAction,
-        FunctionCallAction,
+        delegate::{DelegateAction, NonDelegateAction},
+        Action as NearAction, FunctionCallAction,
     },
-    types::AccountId as NearAccountId,
+    gas::Gas,
+    types::{AccountId as NearAccountId, Balance},
 };
 
 /// Helper test to display test wallet addresses for manual funding
@@ -847,8 +848,8 @@ async fn test_sign_delegate_near() {
     let function_call = FunctionCallAction {
         method_name: "addMessage".to_string(),
         args: args_json.as_bytes().to_vec(),
-        gas: 100_000_000_000_000,
-        deposit: 0,
+        gas: Gas::from_gas(100_000_000_000_000),
+        deposit: Balance::from_yoctonear(0),
     };
 
     // Parse the public key from the wallet

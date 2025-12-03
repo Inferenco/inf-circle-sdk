@@ -61,7 +61,36 @@ impl CircleView {
 
     /// List wallets with token balances
     ///
-    /// Retrieves a list of all wallets with token balances that fit the specified parameters
+    /// Retrieves a list of all wallets with token balances that fit the specified parameters.
+    /// This is useful for finding wallets that hold specific tokens or amounts.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - Filter parameters including wallet set ID, blockchain, token address, etc.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    /// use inf_circle_sdk::dev_wallet::views::list_wallets_with_balances::ListWalletsWithBalancesParamsBuilder;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let params = ListWalletsWithBalancesParamsBuilder::new()
+    ///     .blockchain("ETH-SEPOLIA".to_string())
+    ///     .token_address("0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238".to_string()) // USDC
+    ///     .amount_gte("1000000".to_string()) // At least 1 USDC (6 decimals)
+    ///     .page_size(10)
+    ///     .build();
+    ///
+    /// let response = view.list_wallets_with_token_balances(params).await?;
+    /// for wallet in response.wallets {
+    ///     println!("Wallet {} on {}", wallet.address, wallet.blockchain);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn list_wallets_with_token_balances(
         &self,
         params: ListWalletsWithBalancesParams,
@@ -72,7 +101,28 @@ impl CircleView {
 
     /// Get a specific wallet
     ///
-    /// Retrieves details of a specific wallet by ID
+    /// Retrieves details of a specific wallet by ID, including its addresses on different blockchains,
+    /// metadata, and creation information.
+    ///
+    /// # Arguments
+    ///
+    /// * `wallet_id` - The unique identifier of the wallet
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let wallet = view.get_wallet("wallet-id").await?;
+    /// println!("Wallet name: {}", wallet.wallet.name.unwrap_or_default());
+    /// println!("Wallet ID: {}", wallet.wallet.id);
+    /// println!("Wallet state: {}", wallet.wallet.state);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_wallet(&self, wallet_id: &str) -> CircleResult<DevWalletResponse> {
         let path = format!("/v1/w3s/wallets/{}", wallet_id);
         self.get(&path).await
@@ -157,7 +207,37 @@ impl CircleView {
 
     /// List transactions
     ///
-    /// Retrieves a list of all transactions that fit the specified parameters
+    /// Retrieves a list of all transactions that fit the specified parameters.
+    /// Supports filtering by wallet, blockchain, state, type, and date range.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - Filter parameters including wallet IDs, blockchain, state, pagination, etc.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    /// use inf_circle_sdk::dev_wallet::views::list_transactions::ListTransactionsParamsBuilder;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let params = ListTransactionsParamsBuilder::new()
+    ///     .wallet_ids("wallet-id-1,wallet-id-2".to_string())
+    ///     .blockchain("ETH-SEPOLIA".to_string())
+    ///     .state("PENDING".to_string())
+    ///     .tx_type("TRANSFER".to_string())
+    ///     .page_size(20)
+    ///     .build();
+    ///
+    /// let response = view.list_transactions(params).await?;
+    /// for tx in response.transactions {
+    ///     println!("Transaction {}: {} - Amounts: {:?}", tx.id, tx.state, tx.amounts);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn list_transactions(
         &self,
         params: ListTransactionsParams,
@@ -167,7 +247,31 @@ impl CircleView {
 
     /// Get a specific transaction
     ///
-    /// Retrieves details of a specific transaction by ID
+    /// Retrieves detailed information about a specific transaction by ID, including
+    /// its state, gas fees, blockchain details, and related wallet information.
+    ///
+    /// # Arguments
+    ///
+    /// * `tx_id` - The unique identifier of the transaction
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let tx = view.get_transaction("transaction-id").await?;
+    /// println!("Transaction ID: {}", tx.transaction.id);
+    /// println!("State: {}", tx.transaction.state);
+    /// println!("Amounts: {:?}", tx.transaction.amounts);
+    /// if let Some(hash) = tx.transaction.tx_hash {
+    ///     println!("Hash: {}", hash);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_transaction(&self, tx_id: &str) -> CircleResult<TransactionResponse> {
         let path = format!("/v1/w3s/transactions/{}", tx_id);
         self.get(&path).await
@@ -226,7 +330,40 @@ impl CircleView {
     /// Estimate fee for contract execution transaction
     ///
     /// Estimates gas fees that will be incurred for a contract execution transaction,
-    /// given its ABI parameters and blockchain.
+    /// given its ABI parameters and blockchain. Useful for displaying expected costs
+    /// to users before submitting a transaction.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The contract execution fee estimation request
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    /// use inf_circle_sdk::dev_wallet::views::estimate_contract_execution_fee::EstimateContractExecutionFeeBodyBuilder;
+    /// use inf_circle_sdk::dev_wallet::dto::AbiParameter;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let request = EstimateContractExecutionFeeBodyBuilder::new(
+    ///     "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238".to_string()
+    /// )
+    /// .abi_function_signature(Some("transfer(address,uint256)".to_string()))
+    /// .abi_parameters(Some(vec![
+    ///     AbiParameter::String("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb".to_string()),
+    ///     AbiParameter::String("1000000".to_string()),
+    /// ]))
+    /// .blockchain(Some("ETH-SEPOLIA".to_string()))
+    /// .wallet_id(Some("wallet-id".to_string()))
+    /// .build();
+    ///
+    /// let estimate = view.estimate_contract_execution_fee(request).await?;
+    /// println!("Estimated gas limit: {:?}", estimate.low.gas_limit);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn estimate_contract_execution_fee(
         &self,
         request: EstimateContractExecutionFeeBody,
@@ -251,7 +388,37 @@ impl CircleView {
     /// Estimate fee for transfer transaction
     ///
     /// Estimates gas fees that will be incurred for a transfer transaction,
-    /// given its amount, blockchain, and token.
+    /// given its amount, blockchain, and token. Useful for displaying expected costs
+    /// to users before submitting a transfer.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The transfer fee estimation request
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_view::circle_view::CircleView;
+    /// use inf_circle_sdk::dev_wallet::views::estimate_transfer_fee::EstimateTransferFeeRequestBuilder;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let view = CircleView::new()?;
+    ///
+    /// let request = EstimateTransferFeeRequestBuilder::new(
+    ///     "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb".to_string(),
+    ///     vec!["1000000000000000000".to_string()] // 1 ETH in wei
+    /// )
+    /// .blockchain(Some("ETH-SEPOLIA".to_string()))
+    /// .wallet_id(Some("wallet-id".to_string()))
+    /// .build();
+    ///
+    /// let estimate = view.estimate_transfer_fee(request).await?;
+    /// println!("Low gas limit: {:?}", estimate.low.gas_limit);
+    /// println!("Medium gas limit: {:?}", estimate.medium.gas_limit);
+    /// println!("High gas limit: {:?}", estimate.high.gas_limit);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn estimate_transfer_fee(
         &self,
         request: EstimateTransferFeeRequest,

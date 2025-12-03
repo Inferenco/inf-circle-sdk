@@ -303,9 +303,15 @@ async fn test_deploy_contract_from_template() {
 
     // Ensure wallet is funded before deploying
     println!("💰 Checking wallet balance...");
-    common::ensure_wallet_funded(&view, &wallet, &Blockchain::EthSepolia)
-        .await
-        .expect("Failed to ensure wallet is funded");
+    if let Err(e) = common::ensure_wallet_funded(&view, &wallet, &Blockchain::EthSepolia).await {
+        println!(
+            "⚠️  Could not fund wallet via faucet (rate limit or other error): {}",
+            e
+        );
+        println!(
+            "   Test will continue, but deployment may fail if wallet has insufficient balance"
+        );
+    }
 
     println!("🚀 Testing deploy contract from template...");
 
@@ -364,9 +370,15 @@ async fn test_deploy_contract_from_bytecode() {
 
     // Ensure wallet is funded before deploying
     println!("💰 Checking wallet balance...");
-    common::ensure_wallet_funded(&view, &wallet, &Blockchain::EthSepolia)
-        .await
-        .expect("Failed to ensure wallet is funded");
+    if let Err(e) = common::ensure_wallet_funded(&view, &wallet, &Blockchain::EthSepolia).await {
+        println!(
+            "⚠️  Could not fund wallet via faucet (rate limit or other error): {}",
+            e
+        );
+        println!(
+            "   Test will continue, but deployment may fail if wallet has insufficient balance"
+        );
+    }
 
     println!("🚀 Testing deploy contract from bytecode...");
 

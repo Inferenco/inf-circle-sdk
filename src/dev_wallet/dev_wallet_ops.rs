@@ -99,6 +99,31 @@ impl CircleOps {
     /// Update a wallet
     ///
     /// Updates wallet metadata such as name and reference ID
+    ///
+    /// # Arguments
+    ///
+    /// * `wallet_id` - The wallet ID to update
+    /// * `request` - The update request with new metadata
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    /// use inf_circle_sdk::dev_wallet::dto::UpdateDevWalletRequest;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let request = UpdateDevWalletRequest {
+    ///     name: Some("Updated Wallet Name".to_string()),
+    ///     ref_id: Some("new-ref-id".to_string()),
+    /// };
+    ///
+    /// let response = ops.update_dev_wallet("wallet-id", request).await?;
+    /// println!("Updated wallet: {}", response.wallet.name.unwrap_or_default());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn update_dev_wallet(
         &self,
         wallet_id: &str,
@@ -345,7 +370,8 @@ impl CircleOps {
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let ops = CircleOps::new()?;
     ///
-    /// let builder = CreateTransferTransactionRequestBuilder::new("wallet-id".to_string())
+    /// let builder = CreateTransferTransactionRequestBuilder::new()
+    ///     .wallet_id("wallet-id".to_string())
     ///     .destination_address("0x1234...".to_string())
     ///     .amounts(vec!["0.1".to_string()])  // 0.1 ETH
     ///     .blockchain(Blockchain::EthSepolia)
@@ -369,7 +395,8 @@ impl CircleOps {
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let ops = CircleOps::new()?;
-    /// let builder = CreateTransferTransactionRequestBuilder::new("wallet-id".to_string())
+    /// let builder = CreateTransferTransactionRequestBuilder::new()
+    ///     .wallet_id("wallet-id".to_string())
     ///     .destination_address("0x1234...".to_string())
     ///     .amounts(vec!["10.0".to_string()])  // 10 USDC
     ///     .token_address("0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238".to_string())  // USDC
@@ -413,7 +440,40 @@ impl CircleOps {
 
     /// Query a contract
     ///
-    /// Execute a query function on a contract by providing the address and blockchain
+    /// Execute a query function on a contract by providing the address and blockchain.
+    /// This is a read-only operation that doesn't require a transaction.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The contract query request with contract address, ABI, and function details
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    /// use inf_circle_sdk::dev_wallet::dto::{QueryContractRequest, ContractAbiParameter};
+    /// use inf_circle_sdk::types::Blockchain;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let request = QueryContractRequest {
+    ///     blockchain: Blockchain::EthSepolia.as_str().to_string(),
+    ///     address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238".to_string(),
+    ///     abi_function_signature: Some("balanceOf(address)".to_string()),
+    ///     abi_parameters: Some(vec![
+    ///         ContractAbiParameter::String("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb".to_string())
+    ///     ]),
+    ///     abi_json: None,
+    ///     call_data: None,
+    ///     from_address: None,
+    /// };
+    ///
+    /// let response = ops.dev_query_contract(request).await?;
+    /// println!("Query result: {:?}", response.output_values);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn dev_query_contract(
         &self,
         request: QueryContractRequest,
@@ -494,7 +554,43 @@ impl CircleOps {
 
     /// Create a wallet upgrade transaction
     ///
-    /// Creates a transaction which upgrades a wallet to a new SCA core version
+    /// Creates a transaction which upgrades a wallet to a new SCA core version.
+    /// This allows you to upgrade your wallet to take advantage of new features
+    /// and improvements in newer SCA core implementations.
+    ///
+    /// # Arguments
+    ///
+    /// * `builder` - A `CreateWalletUpgradeTransactionRequestBuilder` with upgrade details
+    ///
+    /// # Returns
+    ///
+    /// Returns transaction details including the transaction ID and state.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
+    /// use inf_circle_sdk::dev_wallet::ops::create_wallet_upgrade_transaction::CreateWalletUpgradeTransactionRequestBuilder;
+    /// use inf_circle_sdk::dev_wallet::dto::{FeeLevel, ScaCore};
+    /// use uuid::Uuid;
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let ops = CircleOps::new()?;
+    ///
+    /// let builder = CreateWalletUpgradeTransactionRequestBuilder::new(
+    ///     "wallet-id".to_string(),
+    ///     ScaCore::Circle6900SingleownerV3,
+    ///     Uuid::new_v4().to_string()
+    /// )
+    /// .fee_level(FeeLevel::Medium)
+    /// .ref_id("upgrade-to-v1".to_string())
+    /// .build();
+    ///
+    /// let response = ops.create_dev_wallet_upgrade_transaction(builder).await?;
+    /// println!("Upgrade transaction ID: {}", response.id);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn create_dev_wallet_upgrade_transaction(
         &self,
         builder: CreateWalletUpgradeTransactionRequestBuilder,

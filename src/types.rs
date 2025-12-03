@@ -69,6 +69,10 @@ pub enum Blockchain {
     Near,
     #[serde(rename = "NEAR-TESTNET")]
     NearTestnet,
+    #[serde(rename = "MONAD")]
+    Monad,
+    #[serde(rename = "MONAD-TESTNET")]
+    MonadTestnet,
     #[serde(rename = "EVM")]
     Evm,
     #[serde(rename = "EVM-TESTNET")]
@@ -94,6 +98,25 @@ pub enum Blockchain {
 }
 
 impl Blockchain {
+    /// Get the string representation of the blockchain
+    ///
+    /// Returns the API-compatible string identifier for the blockchain.
+    ///
+    /// # Returns
+    ///
+    /// Returns a static string slice with the blockchain identifier.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use inf_circle_sdk::types::Blockchain;
+    ///
+    /// let blockchain = Blockchain::EthSepolia;
+    /// assert_eq!(blockchain.as_str(), "ETH-SEPOLIA");
+    ///
+    /// let blockchain = Blockchain::Avax;
+    /// assert_eq!(blockchain.as_str(), "AVAX");
+    /// ```
     pub fn as_str(&self) -> &'static str {
         match self {
             Blockchain::Eth => "ETH",
@@ -108,6 +131,8 @@ impl Blockchain {
             Blockchain::ArbSepolia => "ARB-SEPOLIA",
             Blockchain::Near => "NEAR",
             Blockchain::NearTestnet => "NEAR-TESTNET",
+            Blockchain::Monad => "MONAD",
+            Blockchain::MonadTestnet => "MONAD-TESTNET",
             Blockchain::Evm => "EVM",
             Blockchain::EvmTestnet => "EVM-TESTNET",
             Blockchain::Uni => "UNI",

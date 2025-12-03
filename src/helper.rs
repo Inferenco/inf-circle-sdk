@@ -231,12 +231,72 @@ impl HttpClient {
 }
 
 /// Helper function to read environment variable
+///
+/// Reads an environment variable and returns its value, or an error if it's not set.
+///
+/// # Arguments
+///
+/// * `name` - The name of the environment variable to read
+///
+/// # Returns
+///
+/// Returns the environment variable value on success.
+///
+/// # Errors
+///
+/// Returns `CircleError::EnvVar` if the environment variable is not set.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::helper::get_env_var;
+///
+/// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let api_key = get_env_var("CIRCLE_API_KEY")?;
+/// println!("API Key: {}", api_key);
+/// # Ok(())
+/// # }
+/// ```
 pub fn get_env_var(name: &str) -> CircleResult<String> {
     std::env::var(name)
         .map_err(|_| CircleError::EnvVar(format!("Missing environment variable: {}", name)))
 }
 
 /// Helper function to build query string from parameters
+///
+/// Serializes a struct into a URL-encoded query string, filtering out empty values.
+///
+/// # Arguments
+///
+/// * `params` - A serializable struct containing query parameters
+///
+/// # Returns
+///
+/// Returns a URL-encoded query string (e.g., "key1=value1&key2=value2").
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::helper::build_query_params;
+/// use serde::Serialize;
+///
+/// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// #[derive(Serialize)]
+/// struct Params {
+///     page_size: u32,
+///     blockchain: String,
+/// }
+///
+/// let params = Params {
+///     page_size: 10,
+///     blockchain: "ETH-SEPOLIA".to_string(),
+/// };
+///
+/// let query = build_query_params(&params)?;
+/// println!("Query string: {}", query); // "page_size=10&blockchain=ETH-SEPOLIA"
+/// # Ok(())
+/// # }
+/// ```
 pub fn build_query_params<T: Serialize>(params: &T) -> CircleResult<String> {
     let query_map: HashMap<String, String> = serde_json::from_value(serde_json::to_value(params)?)?;
     let query_pairs: Vec<String> = query_map
@@ -249,6 +309,24 @@ pub fn build_query_params<T: Serialize>(params: &T) -> CircleResult<String> {
 }
 
 /// Helper function to generate UUID v4
+///
+/// Generates a new UUID v4 (random UUID) and returns it as a string.
+///
+/// # Returns
+///
+/// Returns a UUID string in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::helper::generate_uuid;
+///
+/// # fn example() {
+/// let idempotency_key = generate_uuid();
+/// println!("Generated UUID: {}", idempotency_key);
+/// // Example output: "550e8400-e29b-41d4-a716-446655440000"
+/// # }
+/// ```
 pub fn generate_uuid() -> String {
     uuid::Uuid::new_v4().to_string()
 }
@@ -264,6 +342,21 @@ pub fn generate_uuid() -> String {
 ///
 /// # Returns
 /// * `Result<String>` - Base64-encoded encrypted data on success
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::helper::encrypt_entity_secret;
+///
+/// # fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let entity_secret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+/// let public_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...\n-----END PUBLIC KEY-----";
+///
+/// let encrypted = encrypt_entity_secret(entity_secret, public_key)?;
+/// println!("Encrypted secret: {}", encrypted);
+/// # Ok(())
+/// # }
+/// ```
 pub fn encrypt_entity_secret(
     entity_secret_hex: &str,
     public_key_pem: &str,

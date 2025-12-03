@@ -2,32 +2,68 @@ use crate::dev_wallet::dto::ListWalletsWithBalancesParams;
 use crate::helper::PaginationParams;
 use chrono::{DateTime, Utc};
 
-/// Builder for ListWalletsWithBalancesParams
+/// Builder for creating list wallets with balances query parameters
+///
+/// This builder helps construct parameters for querying wallets that have token balances,
+/// with support for filtering by token, amount, blockchain, and pagination.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use inf_circle_sdk::dev_wallet::views::list_wallets_with_balances::ListWalletsWithBalancesParamsBuilder;
+///
+/// let params = ListWalletsWithBalancesParamsBuilder::new()
+///     .blockchain("ETH-SEPOLIA".to_string())
+///     .token_address("0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238".to_string()) // USDC
+///     .amount_gte("1000000".to_string()) // At least 1 USDC (6 decimals)
+///     .page_size(10)
+///     .build();
+/// ```
 pub struct ListWalletsWithBalancesParamsBuilder {
     params: ListWalletsWithBalancesParams,
 }
 
 impl ListWalletsWithBalancesParamsBuilder {
-    /// Create a new builder
+    /// Create a new builder instance
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use inf_circle_sdk::dev_wallet::views::list_wallets_with_balances::ListWalletsWithBalancesParamsBuilder;
+    ///
+    /// let builder = ListWalletsWithBalancesParamsBuilder::new();
+    /// ```
     pub fn new() -> Self {
         Self {
             params: ListWalletsWithBalancesParams::default(),
         }
     }
 
-    /// Filter by address
+    /// Filter by wallet blockchain address
+    ///
+    /// # Arguments
+    ///
+    /// * `address` - The blockchain address to filter by
     pub fn address(mut self, address: String) -> Self {
         self.params.address = Some(address);
         self
     }
 
-    /// Filter by amount greater than or equal to
+    /// Filter by minimum token amount (greater than or equal to)
+    ///
+    /// # Arguments
+    ///
+    /// * `amount` - Minimum token amount in the token's smallest unit
     pub fn amount_gte(mut self, amount: String) -> Self {
         self.params.amount_gte = Some(amount);
         self
     }
 
-    /// Filter by token address
+    /// Filter by token contract address
+    ///
+    /// # Arguments
+    ///
+    /// * `token_address` - Token contract address to filter by
     pub fn token_address(mut self, token_address: String) -> Self {
         self.params.token_address = Some(token_address);
         self
@@ -39,7 +75,11 @@ impl ListWalletsWithBalancesParamsBuilder {
         self
     }
 
-    /// Filter by blockchain
+    /// Filter by blockchain identifier (required)
+    ///
+    /// # Arguments
+    ///
+    /// * `blockchain` - Blockchain identifier (e.g., "ETH-SEPOLIA", "AVAX-FUJI")
     pub fn blockchain(mut self, blockchain: String) -> Self {
         self.params.blockchain = blockchain;
         self

@@ -108,7 +108,8 @@
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let ops = CircleOps::new()?;
 //!
-//!     let builder = CreateTransferTransactionRequestBuilder::new("wallet-id".to_string())
+//!     let builder = CreateTransferTransactionRequestBuilder::new()
+//!         .wallet_id("wallet-id".to_string())
 //!         .destination_address("0x1234...".to_string())
 //!         .amounts(vec!["0.1".to_string()])
 //!         .blockchain(Blockchain::EthSepolia)
