@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 /// - `Base` - Base mainnet
 /// - `Op` - Optimism mainnet
 /// - `Aptos` - Aptos mainnet
+/// - `Monad` - Monad mainnet
 ///
 /// # Testnets
 ///
@@ -34,6 +35,7 @@ use serde::{Deserialize, Serialize};
 /// - `OpSepolia` - Optimism Sepolia testnet
 /// - `AptosTestnet` - Aptos testnet
 /// - `ArcTestnet` - Arc testnet
+/// - `MonadTestnet` - Monad testnet
 ///
 /// # Example
 ///
