@@ -256,7 +256,7 @@ use near_primitives::{
 async fn test_setup_wallets_for_funding() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -311,7 +311,7 @@ async fn test_wallet_lifecycle() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -432,7 +432,7 @@ async fn test_get_token_balances() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -496,7 +496,7 @@ async fn test_get_nfts() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -583,7 +583,7 @@ async fn test_sign_message() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -646,7 +646,7 @@ async fn test_sign_data() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
 
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
@@ -732,7 +732,7 @@ async fn test_sign_transaction() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
 
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
@@ -811,7 +811,7 @@ async fn test_sign_delegate_near() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
 
     // Get required environment variables
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
@@ -931,7 +931,7 @@ async fn test_sign_delegate_non_near_should_fail() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1101,7 +1101,7 @@ async fn test_get_transaction() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1240,7 +1240,7 @@ async fn test_create_transfer_transaction_with_fee_level() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1322,7 +1322,7 @@ async fn test_create_transfer_transaction_with_gas_settings() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1387,7 +1387,7 @@ async fn test_create_token_transfer_transaction() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1478,7 +1478,7 @@ async fn test_create_transfer_transaction_all_fee_levels() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get required environment variables
@@ -1551,7 +1551,7 @@ async fn test_create_transfer_transaction_all_fee_levels() {
 async fn test_request_testnet_tokens() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1589,7 +1589,7 @@ async fn test_request_testnet_tokens() {
 async fn test_estimate_contract_execution_fee() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1635,7 +1635,7 @@ async fn test_estimate_contract_execution_fee() {
 async fn test_estimate_transfer_fee() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1682,7 +1682,7 @@ async fn test_estimate_transfer_fee() {
 async fn test_query_contract() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
 
     // Example: USDC contract on Ethereum Sepolia
     let usdc_contract = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
@@ -1717,7 +1717,7 @@ async fn test_query_contract() {
 async fn test_create_contract_execution_transaction() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1774,7 +1774,7 @@ async fn test_create_contract_execution_transaction() {
 async fn test_create_wallet_upgrade_transaction() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1819,7 +1819,7 @@ async fn test_create_wallet_upgrade_transaction() {
 async fn test_cancel_transaction() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -1897,7 +1897,7 @@ async fn test_cancel_transaction() {
 async fn test_accelerate_transaction() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 

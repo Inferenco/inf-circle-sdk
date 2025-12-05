@@ -52,7 +52,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let ops = CircleOps::new()?;
+//!     let ops = CircleOps::new(None)?;
 //!     let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 //!
 //!     let builder = CreateDevWalletRequestBuilder::new(
@@ -106,7 +106,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let ops = CircleOps::new()?;
+//!     let ops = CircleOps::new(None)?;
 //!
 //!     let builder = CreateTransferTransactionRequestBuilder::new()
 //!         .wallet_id("wallet-id".to_string())
@@ -159,7 +159,7 @@
 //! # use inf_circle_sdk::dev_wallet::dto::AccountType;
 //! # use inf_circle_sdk::types::Blockchain;
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! # let ops = CircleOps::new()?;
+//! # let ops = CircleOps::new(None)?;
 //! # let wallet_set_id = "test".to_string();
 //! # let builder = CreateDevWalletRequestBuilder::new(wallet_set_id, vec![Blockchain::EthSepolia])?.build();
 //! match ops.create_dev_wallet(builder).await {

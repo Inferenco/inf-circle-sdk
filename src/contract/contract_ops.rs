@@ -34,7 +34,7 @@ impl CircleOps {
     /// use inf_circle_sdk::types::Blockchain;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// // Deploy an NFT contract from template
     /// let template_params = serde_json::json!({
@@ -117,7 +117,7 @@ impl CircleOps {
     /// use inf_circle_sdk::types::Blockchain;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// // Bytecode from compiled Solidity contract
     /// let bytecode = "0x608060405234801561001057600080fd5b50...";
@@ -195,7 +195,7 @@ impl CircleOps {
     /// use inf_circle_sdk::types::Blockchain;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// // Import USDC contract on Sepolia
     /// let builder = ImportContractRequestBuilder::new(

@@ -1,6 +1,6 @@
 [package]
 name = "inf-circle-sdk"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 authors = ["Spielcrypto <fjnavarro@spielcrypto.com>"]
 description = "Rust SDK for Circle's API with clean separation of read and write operations"

@@ -8,7 +8,7 @@ use inf_circle_sdk::types::Blockchain;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize CircleOps from environment variables
-    let ops = CircleOps::new()?;
+    let ops = CircleOps::new(None)?;
 
     // Get wallet set ID from environment variables
     let wallet_set_id =

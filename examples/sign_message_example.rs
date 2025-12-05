@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new()?;
+    let ops = CircleOps::new(None)?;
     let view = CircleView::new()?;
 
     println!("✍️  Circle SDK - Sign Message & Typed Data Example");

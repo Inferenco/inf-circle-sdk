@@ -18,7 +18,8 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Requires CIRCLE_API_KEY, CIRCLE_BASE_URL, CIRCLE_ENTITY_SECRET, and CIRCLE_PUBLIC_KEY in env
-//!     let ops = CircleOps::new()?;
+//!     // Pass None to use CIRCLE_ENTITY_SECRET from environment, or Some("your-entity-secret") to override
+//!     let ops = CircleOps::new(None)?;
 //!     
 //!     // Now you can perform write operations like creating wallets, transactions, etc.
 //!     Ok(())
@@ -46,10 +47,15 @@ impl CircleOps {
     ///
     /// Initializes a Circle SDK client for write operations. Reads configuration from
     /// environment variables:
-    /// - `CIRCLE_API_KEY`: Your Circle API key
+    /// - `CIRCLE_API_KEY`: Your Circle API key (always required from environment)
     /// - `CIRCLE_BASE_URL`: Circle API base URL (e.g., https://api.circle.com)
-    /// - `CIRCLE_ENTITY_SECRET`: Hex-encoded entity secret for request signing
+    /// - `CIRCLE_ENTITY_SECRET`: Hex-encoded entity secret for request signing (used if `entity_secret` parameter is `None`)
     /// - `CIRCLE_PUBLIC_KEY`: RSA public key in PEM format for encryption
+    ///
+    /// # Arguments
+    ///
+    /// * `entity_secret` - Optional entity secret. If `None`, reads from `CIRCLE_ENTITY_SECRET` environment variable.
+    ///                    If `Some(secret)`, uses the provided entity secret instead of the environment variable.
     ///
     /// # Returns
     ///
@@ -68,18 +74,27 @@ impl CircleOps {
     /// // Ensure .env file is loaded or environment variables are set
     /// dotenv::dotenv().ok();
     ///
-    /// let ops = CircleOps::new()?;
+    /// // Use entity secret from environment variable
+    /// let ops = CircleOps::new(None)?;
     /// println!("CircleOps initialized successfully!");
+    ///
+    /// // Or provide entity secret directly
+    /// let ops_with_secret = CircleOps::new(Some("your-entity-secret-hex".to_string()))?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new() -> CircleResult<Self> {
+    pub fn new(entity_secret: Option<String>) -> CircleResult<Self> {
         dotenv::dotenv().ok(); // Load .env file if present
 
         let api_key = get_env_var("CIRCLE_API_KEY")?;
         let base_url = get_env_var("CIRCLE_BASE_URL")?;
 
-        let entity_secret = get_env_var("CIRCLE_ENTITY_SECRET")?;
+        let entity_secret = if let Some(entity_secret) = entity_secret {
+            entity_secret
+        } else {
+            get_env_var("CIRCLE_ENTITY_SECRET")?
+        };
+
         let public_key = get_env_var("CIRCLE_PUBLIC_KEY")?;
 
         let client = HttpClient::with_api_key(&base_url, api_key)?;
@@ -109,7 +124,7 @@ impl CircleOps {
     /// use reqwest::Method;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// // Usually you'd use ops.post() instead
     /// let response: serde_json::Value = ops.request(
@@ -155,7 +170,7 @@ impl CircleOps {
     /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let request_body = serde_json::json!({
     ///     "name": "My Resource"
@@ -189,7 +204,7 @@ impl CircleOps {
     /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let request_body = serde_json::json!({
     ///     "name": "Updated Resource"
@@ -223,7 +238,7 @@ impl CircleOps {
     /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let request_body = serde_json::json!({
     ///     "name": "Partially Updated Resource"
@@ -261,7 +276,7 @@ impl CircleOps {
     /// use inf_circle_sdk::circle_ops::circler_ops::CircleOps;
     ///
     /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// // Get encrypted entity secret for a request
     /// let encrypted_secret = ops.entity_secret()?;

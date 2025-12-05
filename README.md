@@ -72,7 +72,7 @@ use inf_circle_sdk::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let ops = CircleOps::new()?;
+    let ops = CircleOps::new(None)?;
     let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 
     let builder = CreateDevWalletRequestBuilder::new(
@@ -126,7 +126,7 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let ops = CircleOps::new()?;
+    let ops = CircleOps::new(None)?;
 
     let builder = CreateTransferTransactionRequestBuilder::new("wallet-id".to_string())
         .destination_address("0x1234...".to_string())

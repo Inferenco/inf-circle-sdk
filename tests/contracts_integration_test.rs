@@ -170,7 +170,7 @@ async fn test_update_contract() {
 async fn test_estimate_template_deployment_fee() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -231,7 +231,7 @@ async fn test_estimate_template_deployment_fee() {
 async fn test_estimate_contract_deployment_fee() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -286,7 +286,7 @@ async fn test_estimate_contract_deployment_fee() {
 async fn test_deploy_contract_from_template() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -353,7 +353,7 @@ async fn test_deploy_contract_from_template() {
 async fn test_deploy_contract_from_bytecode() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
     let wallet_set_id = env::var("CIRCLE_WALLET_SET_ID").expect("CIRCLE_WALLET_SET_ID not set");
 
@@ -422,7 +422,7 @@ async fn test_deploy_contract_from_bytecode() {
 async fn test_import_contract() {
     dotenv::dotenv().ok();
 
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
 
     println!("📥 Testing import contract...");
 
@@ -952,7 +952,7 @@ async fn test_list_event_logs() {
 async fn test_create_event_monitor() {
     dotenv::dotenv().ok();
 
-    let _ops = CircleOps::new().expect("Failed to create CircleOps");
+    let _ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     println!("📡 Testing create event monitor...");

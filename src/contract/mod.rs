@@ -30,7 +30,7 @@
 //! };
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let ops = CircleOps::new()?;
+//! let ops = CircleOps::new(None)?;
 //!
 //! let bytecode = "0x608060405234801561001057600080fd5b50...";
 //! let abi_json = r#"[{"inputs":[],"name":"getValue",...}]"#;

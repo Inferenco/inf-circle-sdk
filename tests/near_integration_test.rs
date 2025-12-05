@@ -27,7 +27,7 @@ async fn test_get_near_account_balance_testnet() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -236,7 +236,7 @@ async fn test_parse_near_public_key_with_prefix() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -286,7 +286,7 @@ async fn test_parse_near_public_key_without_prefix() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -338,7 +338,7 @@ async fn test_parse_near_public_key_from_wallet() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -378,7 +378,7 @@ async fn test_serialize_near_delegate_action() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -494,7 +494,7 @@ async fn test_get_balance_for_circle_wallet() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -646,7 +646,7 @@ async fn test_get_near_token_balance() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -813,7 +813,7 @@ async fn test_get_near_token_balances() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID
@@ -943,7 +943,7 @@ async fn test_get_near_token_balances_without_metadata() {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps and CircleView
-    let ops = CircleOps::new().expect("Failed to create CircleOps");
+    let ops = CircleOps::new(None).expect("Failed to create CircleOps");
     let view = CircleView::new().expect("Failed to create CircleView");
 
     // Get wallet set ID

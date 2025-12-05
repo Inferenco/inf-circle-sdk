@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     // Initialize CircleOps
-    let ops = CircleOps::new()?;
+    let ops = CircleOps::new(None)?;
 
     println!("🚀 Circle SDK - Deploy Contract from Bytecode Example");
     println!("=====================================================\n");

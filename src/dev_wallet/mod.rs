@@ -27,7 +27,7 @@
 //! };
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let ops = CircleOps::new()?;
+//! let ops = CircleOps::new(None)?;
 //! let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
 //!
 //! let builder = CreateDevWalletRequestBuilder::new(

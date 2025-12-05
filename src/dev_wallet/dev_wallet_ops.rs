@@ -53,7 +53,7 @@ impl CircleOps {
     /// use inf_circle_sdk::types::Blockchain;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     /// let wallet_set_id = std::env::var("CIRCLE_WALLET_SET_ID")?;
     ///
     /// // Create a single SCA wallet on Ethereum Sepolia
@@ -112,7 +112,7 @@ impl CircleOps {
     /// use inf_circle_sdk::dev_wallet::dto::UpdateDevWalletRequest;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let request = UpdateDevWalletRequest {
     ///     name: Some("Updated Wallet Name".to_string()),
@@ -149,7 +149,7 @@ impl CircleOps {
     /// use inf_circle_sdk::dev_wallet::ops::sign_message::SignMessageRequestBuilder;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let builder = SignMessageRequestBuilder::new(
     ///     "wallet-id".to_string(),
@@ -197,7 +197,7 @@ impl CircleOps {
     /// use inf_circle_sdk::dev_wallet::ops::sign_data::SignDataRequestBuilder;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let typed_data = serde_json::json!({
     ///     "types": {
@@ -254,7 +254,7 @@ impl CircleOps {
     /// use inf_circle_sdk::dev_wallet::ops::sign_transaction::SignTransactionRequestBuilder;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let raw_tx = serde_json::json!({
     ///     "to": "0x...",
@@ -308,7 +308,7 @@ impl CircleOps {
     /// use inf_circle_sdk::dev_wallet::ops::sign_delegate::SignDelegateRequestBuilder;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let delegate_action = serde_json::json!({
     ///     "delegateAction": {
@@ -368,7 +368,7 @@ impl CircleOps {
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let builder = CreateTransferTransactionRequestBuilder::new()
     ///     .wallet_id("wallet-id".to_string())
@@ -394,7 +394,7 @@ impl CircleOps {
     /// # use inf_circle_sdk::types::Blockchain;
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let ops = CircleOps::new()?;
+    /// # let ops = CircleOps::new(None)?;
     /// let builder = CreateTransferTransactionRequestBuilder::new()
     ///     .wallet_id("wallet-id".to_string())
     ///     .destination_address("0x1234...".to_string())
@@ -455,7 +455,7 @@ impl CircleOps {
     /// use inf_circle_sdk::types::Blockchain;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let request = QueryContractRequest {
     ///     blockchain: Blockchain::EthSepolia.as_str().to_string(),
@@ -503,7 +503,7 @@ impl CircleOps {
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// use inf_circle_sdk::dev_wallet::dto::AbiParameter;
     ///
@@ -575,7 +575,7 @@ impl CircleOps {
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let builder = CreateWalletUpgradeTransactionRequestBuilder::new(
     ///     "wallet-id".to_string(),
@@ -636,7 +636,7 @@ impl CircleOps {
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let builder = CancelTransactionRequestBuilder::new(
     ///     "transaction-id-to-cancel".to_string(),
@@ -693,7 +693,7 @@ impl CircleOps {
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let ops = CircleOps::new()?;
+    /// let ops = CircleOps::new(None)?;
     ///
     /// let builder = AccelerateTransactionRequestBuilder::new(
     ///     "slow-transaction-id".to_string(),
