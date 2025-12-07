@@ -29,6 +29,27 @@ This separation ensures that read-only processes do not require access to sensit
 - ✅ **Message Signing**: Sign messages, typed data (EIP-712), and transactions
 - ✅ **Comprehensive Documentation**: 31 passing doc tests with working examples
 
+## Built With This SDK
+
+### Nova - AI Telegram Bot with Multi-Chain Wallet Support
+
+[Nova](https://inferenco.com/app.html#nova) is a sophisticated AI-powered Telegram bot that leverages this Circle SDK for seamless multi-chain wallet management. Nova demonstrates the real-world capabilities of the Circle SDK in production.
+
+**Key Features:**
+- 🤖 **AI-Powered Conversations**: Advanced language models (GPT-5, GPT-5-mini) with tool-calling capabilities
+- 🔗 **Multi-Chain Wallet**: Built with Circle SDK, supporting Aptos, Solana, and 20+ EVM-compatible blockchains
+- 💰 **Token Management**: Send and receive tokens across multiple networks with automatic gas handling
+- 📊 **Market Data**: Real-time cryptocurrency prices, trending pools, DEX data, and price predictions
+- 🗳️ **DAO Integration**: On-chain proposals and voting capabilities
+- 💸 **Automated Payments**: Scheduled payments and seamless token transfers between group members
+- 🛡️ **Sentinel Protection**: Automated moderation and protection against bad actors
+
+**Try Nova:**
+- 🌐 **Website**: [https://inferenco.com/app.html#nova](https://inferenco.com/app.html#nova)
+- 🤖 **Telegram Bot**: [@NovaInferencoBot](https://t.me/NovaInferencoBot)
+
+Nova showcases how the Circle SDK enables transparent, pay-per-use blockchain applications with seamless Web3 integrations.
+
 ## Installation
 
 Add this to your `Cargo.toml`:
